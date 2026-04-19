@@ -4,9 +4,9 @@
 #include "platform/windows/WinError.h"
 
 #include <winsock2.h>
-#include <Windows.h>
-#include <Iphlpapi.h>
-#include <Ws2tcpip.h>
+#include <windows.h>
+#include <iphlpapi.h>
+#include <ws2tcpip.h>
 
 #include <set>
 #include <string>

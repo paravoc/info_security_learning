@@ -4,7 +4,7 @@
 #include "platform/windows/Encoding.h"
 #include "platform/windows/WinError.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 #include <array>
 #include <cstdint>

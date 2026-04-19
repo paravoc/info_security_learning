@@ -2,7 +2,7 @@
 
 #include "platform/windows/Encoding.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <shellapi.h>
 
 #include <filesystem>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 
 #include <optional>
 #include <string>
@@ -12,4 +12,3 @@ std::optional<std::wstring> readRegistryString(HKEY rootKey, const std::wstring&
 bool registryKeyExists(HKEY rootKey, const std::wstring& subKey);
 
 }  // namespace sec
-

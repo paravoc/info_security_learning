@@ -70,4 +70,8 @@ add_executable(WindowsSecurityWorkbenchGUI WIN32
     src/gui/WorkbenchWindow.h
 )
 target_link_libraries(WindowsSecurityWorkbenchGUI PRIVATE wsw_core)
-target_link_libraries(WindowsSecurityWorkbenchGUI PRIVATE Comdlg32)
+target_link_libraries(WindowsSecurityWorkbenchGUI PRIVATE comdlg32)
+
+if(MINGW)
+    target_link_options(WindowsSecurityWorkbenchGUI PRIVATE -municode)
+endif()
