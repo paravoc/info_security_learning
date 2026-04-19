@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Security Workbench</title>
+    <meta name="description" content="Windows Security Workbench — учебное defensive-приложение на C++23 и CMake для изучения Windows admin, Linux basics, PowerShell, host security и практической диагностики.">
+    <style>
+        :root {
+            --bg: #f4efe8;
+            --bg-strong: #e6ddd1;
+            --surface: rgba(255, 255, 255, 0.8);
+            --surface-strong: #ffffff;
+            --surface-dark: #182433;
+            --text: #162233;
+            --muted: #5d6d7d;
+            --line: rgba(22, 34, 51, 0.12);
+            --accent: #0d7a80;
+            --accent-deep: #095d63;
+            --accent-soft: #d9f0ef;
+            --warm: #b76836;
+            --warm-soft: #f5dfd0;
+            --shadow: 0 20px 60px rgba(26, 42, 61, 0.12);
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --max-width: 1180px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI Variable", "Segoe UI", "Trebuchet MS", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(13, 122, 128, 0.12), transparent 34%),
+                radial-gradient(circle at top right, rgba(183, 104, 54, 0.15), transparent 28%),
+                linear-gradient(180deg, #f7f2eb 0%, var(--bg) 48%, #f0ebe3 100%);
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        code,
+        pre,
+        .mono {
+            font-family: "Cascadia Code", "Consolas", "IBM Plex Mono", monospace;
+        }
+
+        .shell {
+            width: min(var(--max-width), calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(18px);
+            background: rgba(244, 239, 232, 0.76);
+            border-bottom: 1px solid rgba(22, 34, 51, 0.08);
+        }
+
+        .site-header .shell {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            min-height: 76px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: white;
+            background:
+                linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+            box-shadow: 0 12px 30px rgba(13, 122, 128, 0.28);
+        }
+
+        .brand-text {
+            min-width: 0;
+        }
+
+        .brand-text strong,
+        h1,
+        h2,
+        h3 {
+            font-family: "Georgia", "Constantia", serif;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-text strong {
+            display: block;
+            font-size: 1rem;
+        }
+
+        .brand-text span {
+            display: block;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .nav a {
+            font-size: 0.95rem;
+            padding: 10px 14px;
+            border-radius: 999px;
+            color: var(--muted);
+            transition: 0.2s ease;
+        }
+
+        .nav a:hover {
+            background: rgba(13, 122, 128, 0.1);
+            color: var(--text);
+        }
+
+        main {
+            overflow: hidden;
+        }
+
+        section {
+            padding: 38px 0;
+        }
+
+        .hero {
+            padding-top: 54px;
+            padding-bottom: 26px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-copy {
+            padding: 40px;
+            animation: rise 0.8s ease both;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent-deep);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        h1 {
+            margin: 18px 0 16px;
+            font-size: clamp(2.6rem, 5vw, 5rem);
+            line-height: 0.96;
+        }
+
+        .hero-copy p {
+            margin: 0 0 26px;
+            max-width: 60ch;
+            font-size: 1.08rem;
+            color: var(--muted);
+        }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 50px;
+            padding: 0 18px;
+            border-radius: 999px;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+            color: #f8ffff;
+            box-shadow: 0 14px 30px rgba(13, 122, 128, 0.28);
+        }
+
+        .button-secondary {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stat {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(22, 34, 51, 0.08);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.35rem;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .hero-side {
+            display: grid;
+            gap: 18px;
+            animation: rise 0.95s ease both;
+        }
+
+        .terminal {
+            padding: 22px 22px 24px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 100%),
+                var(--surface-dark);
+            color: #ecf5ff;
+            border-radius: var(--radius-xl);
+            box-shadow: 0 24px 50px rgba(24, 36, 51, 0.22);
+        }
+
+        .terminal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            color: rgba(236, 245, 255, 0.72);
+            font-size: 0.9rem;
+        }
+
+        .lights {
+            display: flex;
+            gap: 8px;
+        }
+
+        .lights span {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .lights span:nth-child(1) {
+            background: #ff7f66;
+        }
+
+        .lights span:nth-child(2) {
+            background: #ffc55f;
+        }
+
+        .lights span:nth-child(3) {
+            background: #4ecf81;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            color: #dff5ef;
+        }
+
+        .side-card {
+            padding: 22px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(245, 223, 208, 0.9));
+            border: 1px solid rgba(183, 104, 54, 0.16);
+        }
+
+        .side-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.45rem;
+        }
+
+        .side-card p {
+            margin: 0 0 14px;
+            color: var(--muted);
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chip {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(22, 34, 51, 0.08);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .section-head h2 {
+            margin: 0 0 6px;
+            font-size: clamp(2rem, 3vw, 3.1rem);
+        }
+
+        .section-head p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 62ch;
+        }
+
+        .grid-3,
+        .grid-4,
+        .grid-2 {
+            display: grid;
+            gap: 18px;
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card {
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: var(--shadow);
+        }
+
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 1.4rem;
+        }
+
+        .card p {
+            margin: 0 0 16px;
+            color: var(--muted);
+        }
+
+        .card ul {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--text);
+        }
+
+        .card li + li {
+            margin-top: 8px;
+        }
+
+        .card-accent {
+            background:
+                linear-gradient(180deg, rgba(217, 240, 239, 0.88), rgba(255, 255, 255, 0.88));
+            border-color: rgba(13, 122, 128, 0.12);
+        }
+
+        .card-warm {
+            background:
+                linear-gradient(180deg, rgba(245, 223, 208, 0.88), rgba(255, 255, 255, 0.9));
+            border-color: rgba(183, 104, 54, 0.14);
+        }
+
+        .callout {
+            padding: 26px;
+            border-radius: var(--radius-xl);
+            background: linear-gradient(135deg, #162233 0%, #203049 100%);
+            color: #eef7ff;
+            box-shadow: 0 28px 60px rgba(24, 36, 51, 0.2);
+        }
+
+        .callout h3 {
+            margin: 0 0 8px;
+            font-size: 1.6rem;
+        }
+
+        .callout p,
+        .callout li {
+            color: rgba(238, 247, 255, 0.82);
+        }
+
+        .callout ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .mode {
+            min-height: 170px;
+            padding: 18px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.74);
+            border: 1px solid rgba(22, 34, 51, 0.08);
+        }
+
+        .mode strong {
+            display: inline-block;
+            margin-bottom: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent-deep);
+            font-size: 0.92rem;
+        }
+
+        .mode p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .steps {
+            counter-reset: step;
+            display: grid;
+            gap: 14px;
+        }
+
+        .step {
+            position: relative;
+            padding: 18px 18px 18px 70px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.76);
+            border: 1px solid rgba(22, 34, 51, 0.08);
+        }
+
+        .step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 18px;
+            top: 18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: white;
+            background: var(--warm);
+        }
+
+        .step strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .footer {
+            padding: 26px 0 60px;
+            color: var(--muted);
+        }
+
+        .footer-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 20px 24px;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.62);
+            border: 1px solid rgba(22, 34, 51, 0.08);
+        }
+
+        .footer-box p {
+            margin: 0;
+        }
+
+        .note {
+            font-size: 0.92rem;
+            color: var(--muted);
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1080px) {
+            .hero-grid,
+            .grid-4,
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .mode-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .stat-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .site-header .shell {
+                min-height: auto;
+                padding-top: 12px;
+                padding-bottom: 12px;
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .nav {
+                justify-content: flex-start;
+            }
+
+            .hero-copy,
+            .card,
+            .callout,
+            .side-card {
+                padding: 20px;
+            }
+
+            .cta-row {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+
+            .mode-grid,
+            .stat-row {
+                grid-template-columns: 1fr;
+            }
+
+            .section-head {
+                align-items: start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="shell">
+            <a class="brand" href="#top">
+                <div class="brand-mark">WS</div>
+                <div class="brand-text">
+                    <strong>Windows Security Workbench</strong>
+                    <span>Defensive learning toolkit on C++23 + CMake</span>
+                </div>
+            </a>
+            <nav class="nav">
+                <a href="#about">О проекте</a>
+                <a href="#features">Возможности</a>
+                <a href="#launch">Запуск</a>
+                <a href="#safety">Границы</a>
+                <a href="#roadmap">Roadmap</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="top">
+        <section class="hero">
+            <div class="shell hero-grid">
+                <div class="panel hero-copy">
+                    <div class="eyebrow">Desktop GUI + CLI</div>
+                    <h1>Учебный defensive-инструмент для Windows, PowerShell и практической диагностики.</h1>
+                    <p>
+                        Windows Security Workbench связывает команды, сценарии диагностики, live-проверки,
+                        системные артефакты и учебный roadmap в одном приложении. Это не просто каталог команд,
+                        а объясняющий тренажёр, который показывает куда смотреть, чем проверять и как читать результат.
+                    </p>
+                    <div class="cta-row">
+                        <a class="button button-primary" href="https://github.com/paravoc/info_security_learning" target="_blank" rel="noreferrer">Открыть репозиторий</a>
+                        <a class="button button-secondary" href="#launch">Посмотреть запуск</a>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat">
+                            <strong>C++23</strong>
+                            <span>Нативный Windows desktop tool</span>
+                        </div>
+                        <div class="stat">
+                            <strong>GUI + CLI</strong>
+                            <span>Один набор учебных сценариев</span>
+                        </div>
+                        <div class="stat">
+                            <strong>WSL</strong>
+                            <span>Linux live-проверки при наличии дистрибутива</span>
+                        </div>
+                        <div class="stat">
+                            <strong>JSON / MD</strong>
+                            <span>Экспорт результатов и локальная история</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-side">
+                    <div class="terminal">
+                        <div class="terminal-top">
+                            <div class="lights">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <span class="mono">quick-start.ps1</span>
+                        </div>
+                        <pre><code>PS&gt; .\Start-Workbench.ps1
+
+Starting GUI...
+
+Сценарии:
+  audit
+  cleanup
+  learn
+  study
+  practice
+  full
+
+CLI:
+PS&gt; .\Start-Workbench.ps1 practice --report practice.md --json practice.json
+
+Docker cross-build:
+PS&gt; docker build -t windows-security-workbench:cross .
+PS&gt; docker run --rm windows-security-workbench:cross</code></pre>
+                    </div>
+
+                    <div class="side-card">
+                        <h3>Что делает проект полезным</h3>
+                        <p>
+                            Он соединяет в одном месте симптом, нужную оснастку Windows, нужную команду,
+                            типичный вывод и следующий шаг проверки.
+                        </p>
+                        <div class="chip-list">
+                            <span class="chip">PowerShell</span>
+                            <span class="chip">Windows Admin</span>
+                            <span class="chip">Linux Basics</span>
+                            <span class="chip">Host Security</span>
+                            <span class="chip">WSL</span>
+                            <span class="chip">Markdown / JSON</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about">
+            <div class="shell">
+                <div class="section-head">
+                    <div>
+                        <h2>Не просто справочник команд</h2>
+                        <p>Проект сделан как учебная рабочая станция для defensive-анализа Windows-хоста и параллельного изучения Linux-команд через практику.</p>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <article class="card card-accent">
+                        <h3>Команды</h3>
+                        <p>Каталог Windows и Linux команд с назначением, примером вывода, интерпретацией и следующими шагами диагностики.</p>
+                        <ul>
+                            <li>PowerShell, CMD и Linux shell рядом.</li>
+                            <li>Фокус на реальной диагностике, а не на теории ради теории.</li>
+                            <li>Подходит и как шпаргалка, и как учебный слой.</li>
+                        </ul>
+                    </article>
+
+                    <article class="card card-warm">
+                        <h3>Практика</h3>
+                        <p>Готовые плейбуки по категориям: сеть, диски, процессы, службы, автозагрузка, журналы и доступ.</p>
+                        <ul>
+                            <li>Формат: симптом - что проверить - какие команды - как читать.</li>
+                            <li>Удобно для демонстрации преподавателю и для самообучения.</li>
+                            <li>Есть сценарии и для Windows, и для Linux basics.</li>
+                        </ul>
+                    </article>
+
+                    <article class="card">
+                        <h3>Live-проверки</h3>
+                        <p>Безопасное выполнение read-only команд прямо из приложения: Windows через PowerShell, Linux через WSL.</p>
+                        <ul>
+                            <li>Никаких offensive-функций и скрытых действий.</li>
+                            <li>Результаты можно экспортировать в Markdown и JSON.</li>
+                            <li>История запусков хранится локально.</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="shell">
+                <div class="section-head">
+                    <div>
+                        <h2>Что умеет Workbench</h2>
+                        <p>Инструмент покрывает диагностические и учебные сценарии, которые реально нужны на Windows-хосте и в защитной практике.</p>
+                    </div>
+                </div>
+
+                <div class="grid-4">
+                    <article class="card">
+                        <h3>Windows Audit</h3>
+                        <p>Проверка учётных записей, сети, firewall, обновлений, служб, задач и системных артефактов.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Safe Cleanup</h3>
+                        <p>Безопасная очистка временных файлов и корзины с режимом <span class="mono">dry-run</span>.</p>
+                    </article>
+                    <article class="card">
+                        <h3>GUI Toolkit</h3>
+                        <p>Тёмная тема, быстрые сценарии, вкладки, экспорт и режим учебного тренажёра по умолчанию.</p>
+                    </article>
+                    <article class="card">
+                        <h3>CLI Scenarios</h3>
+                        <p>Режимы <span class="mono">audit</span>, <span class="mono">cleanup</span>, <span class="mono">learn</span>, <span class="mono">study</span>, <span class="mono">practice</span>, <span class="mono">full</span>.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Command Catalog</h3>
+                        <p>Windows и Linux команды с пояснениями, примерами вывода и заметками по интерпретации.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Artifacts Map</h3>
+                        <p>Справочник: где лежат журналы, задачи, startup locations, firewall logs, registry points и другие артефакты.</p>
+                    </article>
+                    <article class="card">
+                        <h3>WSL Live</h3>
+                        <p>Если установлен WSL, проект умеет выполнять Linux read-only проверки для учебной параллели с Windows.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Reports</h3>
+                        <p>Экспорт отчётов в <span class="mono">Markdown</span> и <span class="mono">JSON</span> плюс локальная история запусков.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="shell grid-2">
+                <article class="callout">
+                    <h3>GUI как учебный стенд</h3>
+                    <p>GUI подходит для демонстрации проекта на защите и для повседневной работы как тренажёр.</p>
+                    <ul>
+                        <li>Вкладки: сводка, находки, команды, практика, где искать, обучение, JSON, инструменты.</li>
+                        <li>Быстрые сценарии в боковой панели.</li>
+                        <li>Запуск в учебном режиме по умолчанию, а не в максимально тяжёлом полном аудите.</li>
+                    </ul>
+                </article>
+
+                <article class="callout">
+                    <h3>CLI как практическая утилита</h3>
+                    <p>CLI закрывает тот же набор сценариев, но удобен для отчётов, повторяемых запусков и демонстрации командной части проекта.</p>
+                    <ul>
+                        <li>Скрипт <span class="mono">Start-Workbench.ps1</span> собирает проект при необходимости и запускает нужный режим.</li>
+                        <li>Результаты можно сразу выгрузить в файлы отчётов.</li>
+                        <li>Подходит и для учебных прогонов, и для мини-аудита локальной машины.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section id="launch">
+            <div class="shell">
+                <div class="section-head">
+                    <div>
+                        <h2>Как запускать</h2>
+                        <p>Самый практичный путь для пользователя — launcher, но ручная сборка и Docker cross-build тоже поддержаны.</p>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <article class="card">
+                        <h3>Быстрый старт</h3>
+                        <pre><code>.\Start-Workbench.ps1</code></pre>
+                        <p>Скрипт сам проверяет конфигурацию CMake, при необходимости собирает Release-бинарники и запускает GUI.</p>
+                    </article>
+
+                    <article class="card">
+                        <h3>Ручная сборка</h3>
+                        <pre><code>cmake -S . -B build
+cmake --build build --config Release
+
+.\build\Release\WindowsSecurityWorkbenchGUI.exe
+.\build\Release\WindowsSecurityWorkbench.exe help</code></pre>
+                    </article>
+
+                    <article class="card">
+                        <h3>Docker</h3>
+                        <pre><code>docker build -t windows-security-workbench:cross .
+docker run --rm windows-security-workbench:cross</code></pre>
+                        <p>Контейнер не запускает GUI внутри Linux. Он кросс-компилирует Windows <span class="mono">.exe</span> через <span class="mono">mingw-w64</span>.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="shell">
+                <div class="section-head">
+                    <div>
+                        <h2>Режимы CLI</h2>
+                        <p>GUI и CLI используют общие учебные сценарии, поэтому переключение между режимами не ломает модель работы.</p>
+                    </div>
+                </div>
+
+                <div class="mode-grid">
+                    <article class="mode">
+                        <strong>audit</strong>
+                        <p>Defensive-аудит Windows-хоста с учебной подачей результатов и возможным экспортом отчёта.</p>
+                    </article>
+                    <article class="mode">
+                        <strong>cleanup</strong>
+                        <p>Очистка кэша, временных файлов и корзины. Для безопасного прогона используется <span class="mono">--dry-run</span>.</p>
+                    </article>
+                    <article class="mode">
+                        <strong>learn</strong>
+                        <p>Команды, плейбуки, инструменты, артефакты и учебный roadmap в одном режиме.</p>
+                    </article>
+                    <article class="mode">
+                        <strong>study</strong>
+                        <p>Отдельный учебный слой без полноценного аудита и без акцента на действия с системой.</p>
+                    </article>
+                    <article class="mode">
+                        <strong>practice</strong>
+                        <p>Практический режим с live-проверками Windows и, при желании, Linux через <span class="mono">--linux-live</span>.</p>
+                    </article>
+                    <article class="mode">
+                        <strong>full</strong>
+                        <p>Комбинированный сценарий: аудит, очистка и учебные материалы в одном прогоне.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="safety">
+            <div class="shell grid-2">
+                <article class="card card-accent">
+                    <h3>Границы безопасности</h3>
+                    <p>Проект намеренно ограничен defensive-only сценарием и не уходит в offensive-плоскость.</p>
+                    <ul>
+                        <li>Не извлекает пароли браузеров.</li>
+                        <li>Не получает Wi-Fi ключи, токены, хэши и другие секреты.</li>
+                        <li>Не работает с <span class="mono">LSASS</span> и не делает credential dumping.</li>
+                        <li>Live-режим запускает только безопасные read-only проверки.</li>
+                    </ul>
+                </article>
+
+                <article class="card card-warm">
+                    <h3>Почему проект удобен для диплома</h3>
+                    <p>Это понятная и демонстрируемая тема: есть GUI, CLI, архитектура по модулям, экспорт, Docker cross-build и реальная учебная польза.</p>
+                    <ul>
+                        <li>Нормально смотрится в GitHub-портфолио.</li>
+                        <li>Можно показывать и архитектуру, и интерфейс, и прикладной результат.</li>
+                        <li>Есть понятный путь развития: поиск, фильтры, SQLite, история, дифф запусков.</li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <section>
+            <div class="shell">
+                <div class="section-head">
+                    <div>
+                        <h2>Как показать проект преподавателю</h2>
+                        <p>Ниже самый практичный сценарий демонстрации без лишней постановочности.</p>
+                    </div>
+                </div>
+
+                <div class="steps">
+                    <div class="step">
+                        <strong>Запустить launcher</strong>
+                        Показать, что проект стартует одной командой через <span class="mono">.\Start-Workbench.ps1</span>.
+                    </div>
+                    <div class="step">
+                        <strong>Открыть практический режим</strong>
+                        Переключиться на категории вроде сети, дисков, автозагрузки и журналов.
+                    </div>
+                    <div class="step">
+                        <strong>Выполнить live-проверки Windows</strong>
+                        Показать, что проект умеет запускать только безопасные read-only команды внутри приложения.
+                    </div>
+                    <div class="step">
+                        <strong>Экспортировать результаты</strong>
+                        Сохранить отчёты в <span class="mono">Markdown</span> и <span class="mono">JSON</span>.
+                    </div>
+                    <div class="step">
+                        <strong>Показать Linux-слой</strong>
+                        Объяснить, что Linux-команды и live-проверки доступны через <span class="mono">WSL</span>, если он установлен.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap">
+            <div class="shell">
+                <div class="section-head">
+                    <div>
+                        <h2>Roadmap</h2>
+                        <p>Следующие шаги развития уже очевидны и выглядят реалистично для дипломного проекта, а не как enterprise-фантазия.</p>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <article class="card">
+                        <h3>Поиск и фильтрация</h3>
+                        <p>Команды и сценарии по категориям, ключевым словам и типу диагностики.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Карточки сценариев</h3>
+                        <p>Модель <span class="mono">симптом - команда - что смотреть</span> с быстрым запуском нужной проверки.</p>
+                    </article>
+                    <article class="card">
+                        <h3>Точечный run из GUI</h3>
+                        <p>Запуск конкретной безопасной команды по кнопке прямо из карточки.</p>
+                    </article>
+                    <article class="card">
+                        <h3>История и diff</h3>
+                        <p>Сравнение результатов между запусками и более наглядная эволюция состояния хоста.</p>
+                    </article>
+                    <article class="card">
+                        <h3>SQLite</h3>
+                        <p>Локальная база результатов, истории запусков и подготовленных учебных материалов.</p>
+                    </article>
+                    <article class="card">
+                        <h3>GitHub витрина</h3>
+                        <p>Скриншоты GUI, branding, GitHub Pages и аккуратная документация для публичного показа.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="shell">
+            <div class="footer-box">
+                <p><strong>Windows Security Workbench</strong> — defensive learning toolkit for Windows admin, Linux basics and host security.</p>
+                <p class="note">Страница автономна: файл можно публиковать через GitHub Pages из каталога <span class="mono">docs/</span>.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
