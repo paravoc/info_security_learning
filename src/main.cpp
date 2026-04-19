@@ -1,6 +1,6 @@
 #include "app/Application.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 int main(int argc, char** argv) {
     SetConsoleOutputCP(CP_UTF8);

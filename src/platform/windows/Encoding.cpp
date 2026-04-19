@@ -1,6 +1,6 @@
 #include "platform/windows/Encoding.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 namespace sec {
 
@@ -27,4 +27,3 @@ std::wstring toWide(const std::string& value) {
 }
 
 }  // namespace sec
-

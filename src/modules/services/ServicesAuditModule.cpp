@@ -2,7 +2,7 @@
 
 #include "platform/windows/WinError.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 #include <string>
 #include <vector>

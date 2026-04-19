@@ -2,7 +2,7 @@
 
 #include "core/AuditTypes.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 #include <filesystem>
 #include <optional>

@@ -9,8 +9,8 @@
 #include "report/JsonWriter.h"
 #include "report/ReportWriter.h"
 
-#include <Richedit.h>
-#include <Windowsx.h>
+#include <richedit.h>
+#include <windowsx.h>
 #include <commctrl.h>
 #include <commdlg.h>
 

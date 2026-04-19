@@ -5,7 +5,7 @@
 #include "platform/windows/ProcessRunner.h"
 #include "platform/windows/RegistryUtils.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 #include <string>
 #include <vector>

@@ -4,8 +4,8 @@
 #include "platform/windows/Encoding.h"
 #include "platform/windows/WinError.h"
 
-#include <Windows.h>
-#include <Lm.h>
+#include <windows.h>
+#include <lm.h>
 
 #include <memory>
 #include <string>
