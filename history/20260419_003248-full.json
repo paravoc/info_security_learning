@@ -1,0 +1,481 @@
+{
+  "generatedAt": "2026-04-19 00:32:48",
+  "scenario": "full",
+  "auditItems": [
+    {
+      "category": "System",
+      "title": "Host profile",
+      "status": "INFO",
+      "details": [
+        "Computer name: paravoc",
+        "Current user: smirn",
+        "Version: Windows 10.0 (build 26200)",
+        "Uptime: 2d 2h 45m",
+        "Total RAM: 15.34 GB, available RAM: 4.00 GB"
+      ],
+      "recommendation": ""
+    },
+    {
+      "category": "System",
+      "title": "UAC state",
+      "status": "OK",
+      "details": [
+        "User Account Control is enabled"
+      ],
+      "recommendation": "Keep UAC enabled for interactive elevation checks."
+    },
+    {
+      "category": "Remote access",
+      "title": "Remote Desktop exposure",
+      "status": "OK",
+      "details": [
+        "Remote Desktop is disabled"
+      ],
+      "recommendation": "No direct RDP exposure detected."
+    },
+    {
+      "category": "Protection",
+      "title": "Microsoft Defender service",
+      "status": "OK",
+      "details": [
+        "Service state: Running"
+      ],
+      "recommendation": "Continue monitoring signatures and update status."
+    },
+    {
+      "category": "Accounts",
+      "title": "Local user accounts",
+      "status": "WARN",
+      "details": [
+        "CodexSandboxOffline :: password never expires",
+        "CodexSandboxOnline :: password never expires",
+        "DefaultAccount :: disabled, password not required, password never expires",
+        "smirn :: password never expires",
+        "WDAGUtilityAccount :: disabled",
+        "Администратор :: disabled, password never expires",
+        "Гость :: disabled, password not required, password never expires"
+      ],
+      "recommendation": "Require passwords and avoid perpetual passwords on daily-use local accounts."
+    },
+    {
+      "category": "Accounts",
+      "title": "Administrators group membership",
+      "status": "OK",
+      "details": [
+        "Администратор",
+        "smirn"
+      ],
+      "recommendation": "Administrator group size is small, which is usually easier to control."
+    },
+    {
+      "category": "Accounts",
+      "title": "Password and lockout policy",
+      "status": "WARN",
+      "details": [
+        "Minimum password length: 0",
+        "Password history length: 0",
+        "Maximum password age: 42d 0h 0m",
+        "Minimum password age: 0m",
+        "Lockout threshold: 10",
+        "Lockout duration: 10m",
+        "Observation window: 10m"
+      ],
+      "recommendation": "Aim for at least 8-12 characters, password history, and a non-zero account lockout threshold."
+    },
+    {
+      "category": "Network",
+      "title": "Active network adapters",
+      "status": "OK",
+      "details": [
+        "Беспроводная сеть :: fe80::282:eb2a:9944:f40d, 192.168.0.190",
+        "outline-tap0 :: fe80::b3c6:895b:61:ba06, 10.0.85.2",
+        "Loopback Pseudo-Interface 1 :: ::1, 127.0.0.1"
+      ],
+      "recommendation": "Check that only expected adapters are active."
+    },
+    {
+      "category": "Network",
+      "title": "Listening TCP ports",
+      "status": "WARN",
+      "details": [
+        "Port 135 :: PID 1704",
+        "Port 445 :: PID 4",
+        "Port 5040 :: PID 7572",
+        "Port 5432 :: PID 10284",
+        "Port 49664 :: PID 1392",
+        "Port 49665 :: PID 1216",
+        "Port 49666 :: PID 2368",
+        "Port 49667 :: PID 3180",
+        "Port 49669 :: PID 1304",
+        "Port 52149 :: PID 10428",
+        "Port 139 :: PID 4",
+        "Port 62650 :: Code.exe (PID 22892)",
+        "Port 139 :: PID 4"
+      ],
+      "recommendation": "Sensitive management or file-sharing ports are listening. Verify whether they are required."
+    },
+    {
+      "category": "Firewall",
+      "title": "Firewall profiles",
+      "status": "OK",
+      "details": [
+        "Domain :: enabled=True, inbound=NotConfigured, outbound=NotConfigured, allowInboundRules=NotConfigured, allowLocalRules=NotConfigured",
+        "Private :: enabled=True, inbound=NotConfigured, outbound=NotConfigured, allowInboundRules=NotConfigured, allowLocalRules=NotConfigured",
+        "Public :: enabled=True, inbound=NotConfigured, outbound=NotConfigured, allowInboundRules=NotConfigured, allowLocalRules=NotConfigured"
+      ],
+      "recommendation": "Firewall profiles look reasonably strict."
+    },
+    {
+      "category": "Services",
+      "title": "Core security services",
+      "status": "OK",
+      "details": [
+        "Base Filtering Engine :: Running, start=Automatic",
+        "Windows Firewall :: Running, start=Automatic",
+        "Microsoft Defender :: Running, start=Automatic",
+        "Windows Update :: Not running, start=Manual"
+      ],
+      "recommendation": "Core Windows protection services look healthy."
+    },
+    {
+      "category": "Services",
+      "title": "Remote administration exposure",
+      "status": "WARN",
+      "details": [
+        "Remote Registry :: Not running, start=Disabled",
+        "Windows Remote Management :: Not running, start=Manual",
+        "OpenSSH Server :: Service not present, start=",
+        "Remote Desktop Services :: Not running, start=Manual",
+        "File and Printer Sharing :: Running, start=Automatic"
+      ],
+      "recommendation": "Review which remote-management or file-sharing services are genuinely required on this host."
+    },
+    {
+      "category": "Updates",
+      "title": "Windows Update configuration",
+      "status": "WARN",
+      "details": [
+        "Automatic updates disabled by policy: no",
+        "AUOptions: not available",
+        "Reboot required after updates: no",
+        "Last successful install time: unknown"
+      ],
+      "recommendation": "Keep automatic updates enabled and monitor whether update installation succeeds regularly."
+    },
+    {
+      "category": "Updates",
+      "title": "Recent installed hotfixes",
+      "status": "OK",
+      "details": [
+        "KB5077869 :: 2026-04-16 :: Security Update",
+        "KB5083769 :: 2026-04-16 :: Security Update",
+        "KB5088467 :: 2026-04-16 :: Security Update",
+        "KB5083532 :: 2026-04-16 :: Security Update",
+        "KB5078674 :: 2026-04-16 :: Update"
+      ],
+      "recommendation": "Review whether update cadence matches your patching policy."
+    },
+    {
+      "category": "Tasks",
+      "title": "Active non-Microsoft scheduled tasks",
+      "status": "OK",
+      "details": [
+        "\\CreateExplorerShellUnelevatedTask :: state=Ready, runLevel=n/a, actions=C:\\WINDOWS\\explorer.exe",
+        "\\UpdateTorrent :: state=Ready, runLevel=Highest, actions=\"C:\\Users\\smirn\\AppData\\Roaming\\utorrent\\client\\uTorrentClients.exe\"",
+        "\\Обновление Браузера Яндекс :: state=Ready, runLevel=n/a, actions=C:\\Users\\smirn\\AppData\\Local\\Yandex\\YandexBrowser\\Application\\browser.exe",
+        "\\PowerToys\\Autorun for smirn :: state=Ready, runLevel=n/a, actions=C:\\Users\\smirn\\AppData\\Local\\PowerToys\\PowerToys.exe",
+        "\\SoftLanding\\S-1-5-21-1967146642-2446214716-554224929-1001\\SoftLandingCreativeManagementTask :: state=Ready, runLevel=n/a, actions="
+      ],
+      "recommendation": "The number of active non-Microsoft tasks is relatively small."
+    },
+    {
+      "category": "Tasks",
+      "title": "Tasks with risky execution paths",
+      "status": "WARN",
+      "details": [
+        "\\UpdateTorrent :: state=Ready, runLevel=Highest, actions=\"C:\\Users\\smirn\\AppData\\Roaming\\utorrent\\client\\uTorrentClients.exe\"",
+        "\\Обновление Браузера Яндекс :: state=Ready, runLevel=n/a, actions=C:\\Users\\smirn\\AppData\\Local\\Yandex\\YandexBrowser\\Application\\browser.exe",
+        "\\PowerToys\\Autorun for smirn :: state=Ready, runLevel=n/a, actions=C:\\Users\\smirn\\AppData\\Local\\PowerToys\\PowerToys.exe"
+      ],
+      "recommendation": "Tasks launching executables from user-writable paths deserve manual review."
+    }
+  ],
+  "cleanupSummary": {
+    "dryRun": true,
+    "targets": [
+      {
+        "target": "User temp (C:\\Users\\smirn\\AppData\\Local\\Temp\\)",
+        "success": true,
+        "skipped": false,
+        "filesAffected": 1495,
+        "bytesAffected": 1422068777,
+        "message": "Dry run only. No files were deleted."
+      },
+      {
+        "target": "Windows temp (C:\\WINDOWS\\Temp)",
+        "success": true,
+        "skipped": false,
+        "filesAffected": 0,
+        "bytesAffected": 0,
+        "message": "Dry run only. No files were deleted."
+      },
+      {
+        "target": "Recycle Bin",
+        "success": true,
+        "skipped": false,
+        "filesAffected": 97,
+        "bytesAffected": 26698728937,
+        "message": "Dry run only. Recycle Bin was not emptied."
+      }
+    ]
+  },
+  "commands": [
+    {
+      "title": "List local users",
+      "command": "Get-LocalUser",
+      "purpose": "Shows local Windows accounts, status, and last password change dates.",
+      "caution": "Read-only. Use it instead of trying to inspect password material."
+    },
+    {
+      "title": "Inspect password policy",
+      "command": "net accounts",
+      "purpose": "Displays local password length, age, and lockout settings.",
+      "caution": "Run from an elevated shell if output is incomplete on a managed system."
+    },
+    {
+      "title": "Check local administrators",
+      "command": "Get-LocalGroupMember -Group Administrators",
+      "purpose": "Lists who currently has local administrator rights.",
+      "caution": "Use this to review access, not to modify group membership blindly."
+    },
+    {
+      "title": "Inspect network configuration",
+      "command": "Get-NetIPConfiguration",
+      "purpose": "Shows adapters, IP addresses, gateways, and DNS settings.",
+      "caution": "Useful for baseline learning and troubleshooting."
+    },
+    {
+      "title": "Inspect listening ports",
+      "command": "Get-NetTCPConnection -State Listen",
+      "purpose": "Lists processes that expose TCP listeners on the host.",
+      "caution": "Pay special attention to management ports such as 3389, 445, 5985, and 5986."
+    },
+    {
+      "title": "Test remote connectivity",
+      "command": "Test-NetConnection example.org -Port 443",
+      "purpose": "Checks DNS resolution and TCP connectivity to a remote endpoint.",
+      "caution": "Safe for troubleshooting. Do not use it as a port-scanning substitute on third-party networks."
+    },
+    {
+      "title": "Review running services",
+      "command": "Get-Service | Sort-Object Status, DisplayName",
+      "purpose": "Shows service states and helps spot disabled or unexpected services.",
+      "caution": "Focus on Windows Defender, firewall helpers, remote access, and backup agents."
+    },
+    {
+      "title": "Review scheduled tasks",
+      "command": "Get-ScheduledTask | Where-Object State -ne 'Disabled'",
+      "purpose": "Shows active scheduled tasks that may affect startup or persistence.",
+      "caution": "Review tasks before disabling them to avoid breaking updates or drivers."
+    },
+    {
+      "title": "Inspect recent security events",
+      "command": "Get-WinEvent -LogName Security -MaxEvents 20",
+      "purpose": "Displays the latest security log events for learning and baseline review.",
+      "caution": "Security log access may require elevation or auditing to be enabled."
+    },
+    {
+      "title": "Inspect Defender state",
+      "command": "Get-MpComputerStatus",
+      "purpose": "Shows Microsoft Defender health, signatures, and real-time protection state.",
+      "caution": "If Defender is not present, confirm whether another endpoint protection suite is installed."
+    },
+    {
+      "title": "Check system updates",
+      "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10",
+      "purpose": "Lists recently installed Windows updates and hotfixes.",
+      "caution": "Useful for patch management verification."
+    },
+    {
+      "title": "Flush DNS cache",
+      "command": "ipconfig /flushdns",
+      "purpose": "Clears the local DNS resolver cache when troubleshooting resolution problems.",
+      "caution": "Use for diagnostics. It does not replace malware cleanup or browser cache cleanup."
+    },
+    {
+      "title": "Inspect firewall profiles",
+      "command": "Get-NetFirewallProfile",
+      "purpose": "Shows whether Domain, Private, and Public firewall profiles are enabled and how they behave by default.",
+      "caution": "Pay attention to disabled profiles or inbound default action set to Allow."
+    },
+    {
+      "title": "Inspect inbound firewall rules",
+      "command": "Get-NetFirewallRule -Enabled True -Direction Inbound -Action Allow",
+      "purpose": "Lists active inbound allow rules that expose services to the network.",
+      "caution": "Review the business need for each exposed management or sharing rule."
+    },
+    {
+      "title": "Inspect Windows Update status",
+      "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10",
+      "purpose": "Shows recent installed updates and hotfixes.",
+      "caution": "Useful for patch cadence checks, but it is not a full vulnerability scan."
+    },
+    {
+      "title": "Inspect key services",
+      "command": "Get-Service WinDefend, MpsSvc, wuauserv, WinRM, RemoteRegistry, sshd",
+      "purpose": "Quickly checks protective and remote-management related services.",
+      "caution": "Investigate unexpected remote-management services before disabling them."
+    },
+    {
+      "title": "Inspect scheduled tasks",
+      "command": "Get-ScheduledTask | Select-Object TaskPath, TaskName, State",
+      "purpose": "Lists scheduled tasks and helps identify custom or suspicious automation.",
+      "caution": "Third-party tasks are not automatically malicious; validate owner and action path."
+    },
+    {
+      "title": "Inspect startup Run keys",
+      "command": "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'",
+      "purpose": "Shows classic startup persistence entries in machine and user Run keys.",
+      "caution": "Review unknown executables, especially from user-writable directories."
+    },
+    {
+      "title": "Inspect event logs",
+      "command": "Get-WinEvent -ListLog * | Sort-Object RecordCount -Descending | Select-Object -First 20",
+      "purpose": "Shows which logs are active and most populated on the system.",
+      "caution": "Use it to orient before deeper incident-response or troubleshooting work."
+    },
+    {
+      "title": "Inspect ACLs on a file or folder",
+      "command": "Get-Acl C:\\Path\\To\\Item | Format-List",
+      "purpose": "Displays access control entries on a file system object.",
+      "caution": "Essential for diagnosing access-denied issues and over-permissioned data."
+    },
+    {
+      "title": "Inspect SMB shares",
+      "command": "Get-SmbShare",
+      "purpose": "Lists local SMB shares and helps review file-sharing exposure.",
+      "caution": "Shares should be justified and protected with correct NTFS and share permissions."
+    }
+  ],
+  "learningSections": [
+    {
+      "audience": "Системное администрирование",
+      "title": "База Windows и инфраструктуры",
+      "topics": [
+        "Устройство Windows: процессы, службы, драйверы, реестр, файловые системы, загрузка ОС.",
+        "Управление пользователями, группами, правами, UAC, NTFS ACL и локальными политиками.",
+        "Сетевые основы: TCP/IP, DNS, DHCP, NAT, VPN, маршрутизация, SMB, RDP, WinRM."
+      ],
+      "labs": [
+        "Поднять тестовую Windows VM и вручную настроить локальные учётные записи, UAC и NTFS-права.",
+        "Проверить сетевую конфигурацию, DNS, listening ports и firewall profiles через PowerShell."
+      ],
+      "milestones": [
+        "Уметь объяснить, как Windows загружается и где хранятся основные системные настройки.",
+        "Уметь диагностировать базовые проблемы входа, прав доступа и сетевого подключения."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "PowerShell и автоматизация",
+      "topics": [
+        "Конвейер PowerShell, объекты, модули, remoting, jobs, scheduled tasks.",
+        "Автоматизация инвентаризации: службы, процессы, обновления, firewall, event logs.",
+        "Написание безопасных скриптов, логирование и обработка ошибок."
+      ],
+      "labs": [
+        "Сделать набор скриптов для инвентаризации пользователей, сервисов и сетевых интерфейсов.",
+        "Настроить Scheduled Task для регулярного аудита системы и сохранения отчётов."
+      ],
+      "milestones": [
+        "Писать PowerShell-скрипты без копипаста команд вручную.",
+        "Автоматизировать повторяемые задачи администрирования."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Поддержка, обновления и восстановление",
+      "topics": [
+        "Windows Update, драйверы, журналы, точки восстановления, резервное копирование и recovery.",
+        "Мониторинг производительности, работа с памятью, диском, автозагрузкой и службами.",
+        "Понимание, как безопасно чистить временные данные без разрушения системы."
+      ],
+      "labs": [
+        "Собрать чек-лист обслуживания рабочей станции и сервера.",
+        "Отработать сценарий обновления, перезагрузки и отката на тестовой VM."
+      ],
+      "milestones": [
+        "Уметь вести регулярное обслуживание Windows-хоста.",
+        "Уметь быстро собирать базовый health-check после инцидента или жалобы пользователя."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Фундамент ИБ",
+      "topics": [
+        "CIA triad, риск-менеджмент, поверхность атаки, уязвимости, hardening и defence in depth.",
+        "Модели аутентификации и авторизации, MFA, least privilege, password policy, account lockout.",
+        "Сетевые угрозы, lateral movement, persistence, privilege escalation, phishing и malware basics."
+      ],
+      "labs": [
+        "Сопоставить настройки локальной безопасности Windows с типовыми рисками.",
+        "Разобрать несколько реальных техник MITRE ATT&CK и найти их Windows-артефакты."
+      ],
+      "milestones": [
+        "Уметь читать базовый security baseline и объяснять, зачем нужен каждый контроль.",
+        "Уметь отличать плохую конфигурацию от нормальной административной активности."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Windows Security Operations",
+      "topics": [
+        "Defender, firewall, audit policy, event logs, scheduled tasks, autoruns, services, PowerShell logging.",
+        "Индикаторы компрометации в учётках, службах, задачах, сетевых подключениях и журналах.",
+        "Базовый incident response: triage, containment, evidence preservation, eradication, lessons learned."
+      ],
+      "labs": [
+        "Собрать playbook проверки хоста: аккаунты, порты, сервисы, обновления, firewall, журналы.",
+        "Проверить, как выглядят нормальные и подозрительные scheduled tasks на тестовой машине."
+      ],
+      "milestones": [
+        "Уметь провести первичный defensive-аудит Windows-машины.",
+        "Уметь оформить findings и рекомендации понятным техническим языком."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Identity, AD и корпоративная среда",
+      "topics": [
+        "Active Directory, Kerberos, NTLM, GPO, delegated administration, service accounts, secrets hygiene.",
+        "Разделение административных ролей, tiering, jump hosts, LAPS, auditing privileged access.",
+        "Базовые корпоративные процессы: onboarding/offboarding, inventory, patching, vulnerability management."
+      ],
+      "labs": [
+        "Подготовить схему ролей доступа для маленькой организации.",
+        "Смоделировать безопасный жизненный цикл учётной записи сотрудника."
+      ],
+      "milestones": [
+        "Понимать, где чаще всего ломается контроль доступа в корпоративной Windows-среде.",
+        "Понимать, почему права локального администратора опасны на рабочих станциях."
+      ]
+    },
+    {
+      "audience": "Общее развитие",
+      "title": "Практические лаборатории и стек",
+      "topics": [
+        "VirtualBox/Hyper-V, Windows Sandbox, Sysinternals, Wireshark, Procmon, Autoruns, Event Viewer.",
+        "Git, CMake, C++ для внутренних defensive tools, Markdown-отчёты, JSON-экспорт, SQLite-история.",
+        "Документирование: runbooks, baselines, чек-листы и отчёты по findings."
+      ],
+      "labs": [
+        "Поднять домашний lab из нескольких VM и отрабатывать сценарии hardening и расследования.",
+        "Сделать серию мини-инструментов: инвентаризация, аудит прав, аудит firewall, анализ журналов."
+      ],
+      "milestones": [
+        "Не просто знать команды, а уметь строить собственные утилиты и процессы вокруг них.",
+        "Иметь портфолио учебных defensive-проектов, пригодное для диплома и собеседований."
+      ]
+    }
+  ]
+}

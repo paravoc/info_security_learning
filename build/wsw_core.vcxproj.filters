@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\app\WorkbenchService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\core\AuditTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\core\StringUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\core\TimeUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\history\HistoryStore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\system\SystemAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\accounts\AccountsAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\network\NetworkAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\firewall\FirewallAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\updates\UpdatesAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\services\ServicesAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\tasks\ScheduledTasksAuditModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\cleanup\CleanupService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\commands\CommandCatalog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\artifacts\ArtifactCatalog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\lab\CommandLabService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\tools\SystemToolCatalog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\learning\LearningCatalog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\modules\playbooks\PlaybookCatalog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\platform\windows\Encoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\platform\windows\RegistryUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\platform\windows\ProcessRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\platform\windows\WinError.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\report\ReportWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\smirn\Desktop\проекты\безопасность\src\report\JsonWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\smirn\Desktop\проекты\безопасность\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{57F81F4A-08C0-33BB-B4ED-E3267F860DBE}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

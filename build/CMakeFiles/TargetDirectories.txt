@@ -1,0 +1,5 @@
+C:/Users/smirn/Desktop/проекты/безопасность/build/CMakeFiles/wsw_core.dir
+C:/Users/smirn/Desktop/проекты/безопасность/build/CMakeFiles/WindowsSecurityWorkbench.dir
+C:/Users/smirn/Desktop/проекты/безопасность/build/CMakeFiles/WindowsSecurityWorkbenchGUI.dir
+C:/Users/smirn/Desktop/проекты/безопасность/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/smirn/Desktop/проекты/безопасность/build/CMakeFiles/ZERO_CHECK.dir

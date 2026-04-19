@@ -1,0 +1,1926 @@
+{
+  "generatedAt": "2026-04-19 20:31:13",
+  "scenario": "learn",
+  "auditItems": [
+  ],
+  "cleanupSummary": null,
+  "commands": [
+    {
+      "platform": "Windows",
+      "category": "Учётные записи и доступ",
+      "title": "Локальные пользователи",
+      "command": "Get-LocalUser",
+      "purpose": "Показывает локальные учетные записи Windows, их состояние и базовые свойства.",
+      "caution": "Read-only команда. Она нужна для аудита и инвентаризации, а не для доступа к чужим секретам.",
+      "exampleOutput": "Name               Enabled LastLogon\n----               ------- ---------\nAdministrator      False\nDefaultAccount     False\nstudent            True    19.04.2026 00:41:12\nsupport            True    18.04.2026 21:10:03",
+      "interpretation": "Смотри, какие аккаунты включены, кто давно не входил и нет ли тестовых или сервисных учеток без понятной роли.",
+      "relatedTool": "Win+X -> Управление компьютером",
+      "scenario": "Когда нужно понять, кто вообще существует на локальной машине и какие учетные записи живые.",
+      "checks": [
+        "включен ли аккаунт",
+        "дата LastLogon",
+        "неожиданные локальные пользователи"
+      ],
+      "nextCommands": [
+        "Get-LocalGroupMember -Group Administrators",
+        "net accounts"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Учётные записи и доступ",
+      "title": "Парольная политика",
+      "command": "net accounts",
+      "purpose": "Показывает локальную парольную политику: длину, срок действия, историю и параметры блокировки.",
+      "caution": "На доменных машинах часть настроек может приходить из GPO. Это быстрый первый срез, а не полный аудит домена.",
+      "exampleOutput": "Minimum password age (days):                          0\nMaximum password age (days):                          42\nMinimum password length:                              8\nLength of password history maintained:                5\nLockout threshold:                                    5",
+      "interpretation": "Если длина пароля маленькая, история нулевая и нет lockout threshold, локальная защита явно слабая.",
+      "relatedTool": "Win+X -> Терминал (Администратор)",
+      "scenario": "Когда нужно быстро понять базовый security baseline локальной системы.",
+      "checks": [
+        "Minimum password length",
+        "history maintained",
+        "Lockout threshold"
+      ],
+      "nextCommands": [
+        "Get-LocalUser",
+        "Get-LocalGroupMember -Group Administrators"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Учётные записи и доступ",
+      "title": "Локальные администраторы",
+      "command": "Get-LocalGroupMember -Group Administrators",
+      "purpose": "Показывает участников локальной группы администраторов.",
+      "caution": "Лишний локальный администратор увеличивает риск ошибок и тихих изменений в системе.",
+      "exampleOutput": "ObjectClass Name                         PrincipalSource\n----------- ----                         ---------------\nUser        DESKTOP-01\\student           Local\nGroup       DESKTOP-01\\IT-Support        Local\nUser        CONTOSO\\svc_backup           ActiveDirectory",
+      "interpretation": "Сравни список с реальной ролью хоста. Любой непонятный сервисный или пользовательский аккаунт здесь требует объяснения.",
+      "relatedTool": "Win+X -> Управление компьютером",
+      "scenario": "Когда проверяешь доступы, эскалацию прав и локальный administrative footprint.",
+      "checks": [
+        "лишние локальные админы",
+        "сервисные учетки",
+        "доменные учетные записи с admin-правами"
+      ],
+      "nextCommands": [
+        "whoami /priv",
+        "Get-LocalUser"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Учётные записи и доступ",
+      "title": "Текущие привилегии",
+      "command": "whoami /priv",
+      "purpose": "Показывает привилегии текущего токена: что реально выдано процессу и что сейчас активно.",
+      "caution": "Команда не меняет права. Но она помогает не гадать, почему команда требует elevation.",
+      "exampleOutput": "Privilege Name                Description                    State\n==============                ===========                    =====\nSeShutdownPrivilege           Shut down the system           Disabled\nSeChangeNotifyPrivilege       Bypass traverse checking       Enabled\nSeTimeZonePrivilege           Change the time zone           Disabled",
+      "interpretation": "Наличие привилегии не значит, что она используется. Смотри на столбец State и понимай, нужен ли тебе elevation.",
+      "relatedTool": "Win+X -> Терминал / Терминал (Администратор)",
+      "scenario": "Когда команда не работает и нужно понять, запущена ли сессия с нужным уровнем прав.",
+      "checks": [
+        "какие привилегии есть",
+        "что Enabled",
+        "что Disabled"
+      ],
+      "nextCommands": [
+        "Get-LocalGroupMember -Group Administrators"
+      ],
+      "runnableInsideApp": false
+    },
+    {
+      "platform": "Windows",
+      "category": "Сеть и DNS",
+      "title": "IP-конфигурация",
+      "command": "Get-NetIPConfiguration",
+      "purpose": "Показывает активные интерфейсы, IPv4/IPv6, шлюзы и DNS.",
+      "caution": "Начинать диагностику сети лучше отсюда, а не с бессистемного изменения настроек.",
+      "exampleOutput": "InterfaceAlias       : Ethernet\nIPv4Address          : 192.168.1.34\nIPv4DefaultGateway   : 192.168.1.1\nDNSServer            : 192.168.1.1, 1.1.1.1\n\nInterfaceAlias       : vEthernet (Default Switch)\nIPv4Address          : 172.22.176.1",
+      "interpretation": "Отделяй реальный сетевой интерфейс от виртуальных switch, VPN и контейнерных адаптеров.",
+      "relatedTool": "Win+X -> Сетевые подключения",
+      "scenario": "Когда сайт не открывается или нужно понять, какой адрес машина получила на самом деле.",
+      "checks": [
+        "активный интерфейс",
+        "gateway",
+        "DNS",
+        "виртуальные адаптеры"
+      ],
+      "nextCommands": [
+        "Resolve-DnsName example.org",
+        "Test-NetConnection example.org -Port 443"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Сеть и DNS",
+      "title": "DNS-резолвинг",
+      "command": "Resolve-DnsName example.org",
+      "purpose": "Проверяет, как система разрешает доменное имя.",
+      "caution": "Это проверка диагностики. Не используй ее как сканер чужих доменов и инфраструктур.",
+      "exampleOutput": "Name                                           Type   TTL   Section    IPAddress\n----                                           ----   ---   -------    ---------\nexample.org                                    A      285   Answer     93.184.216.34",
+      "interpretation": "Если DNS не отдает запись, проблема еще до TCP-подключения. Если запись есть, переходи к проверке порта.",
+      "relatedTool": "Win+X -> Терминал",
+      "scenario": "Когда нужно понять, виноват ли DNS, а не браузер или удаленный веб-сервер.",
+      "checks": [
+        "есть ли Answer",
+        "какой IP вернулся",
+        "нет ли неожиданного DNS-ответа"
+      ],
+      "nextCommands": [
+        "Test-NetConnection example.org -Port 443",
+        "Get-NetIPConfiguration"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Сеть и DNS",
+      "title": "Проверка удалённого порта",
+      "command": "Test-NetConnection example.org -Port 443",
+      "purpose": "Проверяет DNS-резолвинг и TCP-доступность удаленной точки.",
+      "caution": "Нормальная диагностическая команда. Не используй ее для агрессивного перебора хостов.",
+      "exampleOutput": "ComputerName           : example.org\nRemoteAddress          : 93.184.216.34\nRemotePort             : 443\nNameResolutionResults  : 93.184.216.34\nTcpTestSucceeded       : True",
+      "interpretation": "Если имя резолвится, но TcpTestSucceeded=False, дальше проверяй firewall, маршрут или состояние удаленного сервиса.",
+      "relatedTool": "Win+X -> Терминал",
+      "scenario": "Когда нужно проверить, доступен ли сервис по конкретному TCP-порту.",
+      "checks": [
+        "TcpTestSucceeded",
+        "RemoteAddress",
+        "NameResolutionResults"
+      ],
+      "nextCommands": [
+        "Get-NetIPConfiguration",
+        "Get-NetTCPConnection -State Listen | Sort-Object LocalPort"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Сеть и DNS",
+      "title": "Слушающие TCP-порты",
+      "command": "Get-NetTCPConnection -State Listen | Sort-Object LocalPort | Select-Object -First 20 LocalAddress,LocalPort,OwningProcess",
+      "purpose": "Показывает, какие локальные порты слушают входящие подключения.",
+      "caution": "Особенно внимательно смотри на 3389, 445, 5985 и другие сервисные порты удаленного доступа.",
+      "exampleOutput": "LocalAddress LocalPort OwningProcess\n------------ --------- -------------\n0.0.0.0      135       932\n0.0.0.0      445       4\n0.0.0.0      3389      1304\n127.0.0.1    5354      4976",
+      "interpretation": "Важно не само наличие порта, а его смысл: кто слушает, на каком адресе и должен ли этот сервис быть доступен извне.",
+      "relatedTool": "Win+X -> Терминал (Администратор)",
+      "scenario": "Когда нужно понять, не торчит ли наружу лишний сервис или удаленный доступ.",
+      "checks": [
+        "0.0.0.0 против 127.0.0.1",
+        "служебные порты",
+        "OwningProcess"
+      ],
+      "nextCommands": [
+        "Get-Service | Where-Object Status -eq 'Running'",
+        "Get-NetFirewallProfile | Select-Object Name,Enabled,DefaultInboundAction,DefaultOutboundAction"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Диски и файловые системы",
+      "title": "Свободное место на томах",
+      "command": "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size",
+      "purpose": "Показывает свободное место на томах и помогает быстро найти переполненный раздел.",
+      "caution": "Не пытайся чистить recovery или скрытые системные разделы без понимания их роли.",
+      "exampleOutput": "DriveLetter FileSystemLabel SizeRemaining     Size\n----------- --------------- -------------     ----\nC           System          18.40 GB          237.93 GB\nD           Data            412.11 GB         931.39 GB\n            Recovery        152.00 MB         850.00 MB",
+      "interpretation": "Если системный диск близок к 100 процентам, проблемы пойдут в обновлениях, кэше, pagefile и временных файлах.",
+      "relatedTool": "Win+X -> Управление дисками",
+      "scenario": "Когда нужно быстро понять, где реально заканчивается место.",
+      "checks": [
+        "системный том",
+        "скрытые разделы",
+        "остаток на C:"
+      ],
+      "nextCommands": [
+        "Get-PSDrive -PSProvider FileSystem",
+        "Get-ChildItem $env:TEMP -Force | Select-Object -First 20 Name,Length,LastWriteTime"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Диски и файловые системы",
+      "title": "Файловые диски PowerShell",
+      "command": "Get-PSDrive -PSProvider FileSystem",
+      "purpose": "Показывает файловые диски в удобном для PowerShell виде.",
+      "caution": "Это быстрый рабочий срез. Для низкоуровневых проблем по дискам переходи к Get-Disk и оснастке управления дисками.",
+      "exampleOutput": "Name Used (GB) Free (GB) Provider   Root\n---- --------- --------- --------   ----\nC      219.53     18.40 FileSystem C:\\\nD      519.28    412.11 FileSystem D:\\",
+      "interpretation": "Удобно для ежедневной диагностики и скриптов. Видно только то, что реально смонтировано как файловая система.",
+      "relatedTool": "Win+X -> Управление дисками",
+      "scenario": "Когда нужен короткий срез по свободному месту без лишнего шума.",
+      "checks": [
+        "Used/Free",
+        "только файловые системы",
+        "сравнение с Get-Volume"
+      ],
+      "nextCommands": [
+        "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size",
+        "Get-Disk | Select-Object Number,FriendlyName,HealthStatus,OperationalStatus,Size"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Диски и файловые системы",
+      "title": "Физические диски и health",
+      "command": "Get-Disk | Select-Object Number,FriendlyName,PartitionStyle,HealthStatus,OperationalStatus,Size",
+      "purpose": "Показывает физические диски, стиль разметки и базовый health-status.",
+      "caution": "Если HealthStatus не в норме, не лечи это только очисткой: это уже вопрос состояния железа и storage-пути.",
+      "exampleOutput": "Number FriendlyName       PartitionStyle HealthStatus OperationalStatus         Size\n------ ------------       -------------- ------------ -----------------         ----\n0      NVMe SSD 1TB       GPT            Healthy      Online            1000202273280\n1      USB External Disk  MBR            Healthy      Online             500107862016",
+      "interpretation": "Команда полезна, чтобы не путать проблему файловой системы с проблемой самого устройства.",
+      "relatedTool": "Win+X -> Управление дисками",
+      "scenario": "Когда нужно понять, проблема в логическом томе или уже в самом диске.",
+      "checks": [
+        "HealthStatus",
+        "OperationalStatus",
+        "какой диск системный"
+      ],
+      "nextCommands": [
+        "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Диски и файловые системы",
+      "title": "Содержимое TEMP",
+      "command": "Get-ChildItem $env:TEMP -Force | Select-Object -First 20 Name,Length,LastWriteTime",
+      "purpose": "Показывает, что лежит в пользовательском TEMP и какие файлы там самые заметные.",
+      "caution": "Не удаляй временные файлы наугад, если не понимаешь, кто их использует прямо сейчас.",
+      "exampleOutput": "Name                         Length LastWriteTime\n----                         ------ -------------\n7zO12A.tmp                    84512 19.04.2026 00:54:12\nChromeProfileDump             4096  18.04.2026 22:11:44\nCode Cache                    0     18.04.2026 21:07:12",
+      "interpretation": "Смотри на размер, возраст и повторяющиеся шаблоны. Это помогает понять, кто загрязняет TEMP.",
+      "relatedTool": "Параметры -> Система -> Память",
+      "scenario": "Когда нужно понять, что именно копится во временных каталогах перед очисткой.",
+      "checks": [
+        "старые файлы",
+        "крупные объекты",
+        "повторяющиеся кэши"
+      ],
+      "nextCommands": [
+        "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size"
+      ],
+      "runnableInsideApp": false
+    },
+    {
+      "platform": "Windows",
+      "category": "Процессы и производительность",
+      "title": "Тяжёлые процессы по CPU",
+      "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 ProcessName,CPU,WS",
+      "purpose": "Помогает быстро найти процессы, которые съели больше всего процессорного времени.",
+      "caution": "Высокий CPU не всегда означает проблему: индексация, обновления и антивирус могут давать нормальный фон.",
+      "exampleOutput": "ProcessName        CPU      WS\n-----------        ---      --\nchrome             843.72   952320000\nMsMpEng            312.61   284196864\nCode               221.04   612794368\nOneDrive            74.38   118550528",
+      "interpretation": "CPU показывает накопленное время. Ищи не просто большие числа, а процессы, которые долго растут без понятной причины.",
+      "relatedTool": "Win+X -> Диспетчер задач",
+      "scenario": "Когда система ощущается тяжелой и нужно быстро найти главного потребителя CPU.",
+      "checks": [
+        "долгоживущие процессы",
+        "сочетание CPU и WS",
+        "неожиданные имена"
+      ],
+      "nextCommands": [
+        "Get-Counter '\\Memory\\Available MBytes'",
+        "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Процессы и производительность",
+      "title": "Свободная память",
+      "command": "Get-Counter '\\Memory\\Available MBytes'",
+      "purpose": "Показывает, сколько памяти сейчас доступно системе.",
+      "caution": "Одна метрика не заменяет полный memory analysis, но дает быстрый sanity-check.",
+      "exampleOutput": "(PDH-CSV 4.0)\",\"\\\\DESKTOP-01\\memory\\available mbytes\"\n\"19.04.2026 01:20:12.312\",\"914\"",
+      "interpretation": "Если Available MBytes очень низок и держится таким долго, ищи приложение или сервис, который давит на память.",
+      "relatedTool": "Win+X -> Диспетчер задач",
+      "scenario": "Когда подозреваешь нехватку памяти, а не процессора.",
+      "checks": [
+        "длительно низкий available memory",
+        "сопоставление с тяжелыми процессами"
+      ],
+      "nextCommands": [
+        "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 ProcessName,CPU,WS"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Процессы и производительность",
+      "title": "Автозагрузка",
+      "command": "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location",
+      "purpose": "Показывает программы, стартующие вместе с Windows.",
+      "caution": "Не путай полезные агенты синхронизации и защиты с реально лишним автозапуском.",
+      "exampleOutput": "Name                Command                                              Location\n----                -------                                              --------\nOneDrive            \"C:\\Users\\student\\AppData\\Local\\Microsoft\\...\"        HKCU\\Software\\Microsoft\\...\nSecurityHealth      C:\\Windows\\system32\\SecurityHealthSystray.exe         HKLM\\Software\\Microsoft\\...\nTeams Machine       C:\\Program Files\\Teams Installer\\Teams.exe            Startup",
+      "interpretation": "Смотри на путь запуска. AppData, Temp и скрытые пользовательские папки требуют отдельной проверки.",
+      "relatedTool": "Win+X -> Диспетчер задач",
+      "scenario": "Когда логон медленный или хочется разобрать, что система запускает без спроса.",
+      "checks": [
+        "Location",
+        "пути в AppData",
+        "подписанные и штатные компоненты"
+      ],
+      "nextCommands": [
+        "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Процессы и производительность",
+      "title": "Отчёт по батарее",
+      "command": "powercfg /batteryreport",
+      "purpose": "Создает HTML-отчет по батарее ноутбука: емкость, циклы, историю использования.",
+      "caution": "Команда создает файл-отчет. Практический смысл есть на ноутбуках и планшетах, а не на обычных стационарных ПК.",
+      "exampleOutput": "Battery life report saved to file path\nC:\\Users\\student\\battery-report.html",
+      "interpretation": "Полезный результат находится не в консоли, а в HTML-файле. Смотри Design Capacity и Full Charge Capacity.",
+      "relatedTool": "Win+X -> Управление электропитанием",
+      "scenario": "Когда нужно понять, это тормоза из-за degraded battery/power profile или нет.",
+      "checks": [
+        "путь к HTML-отчету",
+        "Design Capacity",
+        "Full Charge Capacity"
+      ],
+      "nextCommands": [
+        "powercfg /energy"
+      ],
+      "runnableInsideApp": false
+    },
+    {
+      "platform": "Windows",
+      "category": "Службы и автозапуск",
+      "title": "Активные службы",
+      "command": "Get-Service | Where-Object Status -eq 'Running' | Select-Object -First 20 Name,DisplayName,Status",
+      "purpose": "Показывает работающие службы и помогает быстро понять профиль хоста.",
+      "caution": "Не отключай службу вслепую: сначала пойми, системная она, защитная или прикладная.",
+      "exampleOutput": "Name           DisplayName                               Status\n----           -----------                               ------\nLanmanServer   Server                                    Running\nWinDefend      Microsoft Defender Antivirus Service      Running\nwuauserv       Windows Update                            Running",
+      "interpretation": "Смотри на сетевые, защитные и удаленные сервисы. Неожиданное имя без понятной роли - уже повод копать дальше.",
+      "relatedTool": "Win+X -> Управление компьютером",
+      "scenario": "Когда нужно понять, что именно сейчас живет на хосте как сервис.",
+      "checks": [
+        "защитные сервисы",
+        "сетевые службы",
+        "службы удаленного доступа"
+      ],
+      "nextCommands": [
+        "Get-NetTCPConnection -State Listen | Sort-Object LocalPort | Select-Object -First 20 LocalAddress,LocalPort,OwningProcess"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Службы и автозапуск",
+      "title": "Активные задачи планировщика",
+      "command": "Get-ScheduledTask | Where-Object State -ne 'Disabled' | Select-Object -First 20 TaskName,TaskPath,State",
+      "purpose": "Показывает включенные scheduled tasks и помогает искать подозрительный автозапуск.",
+      "caution": "Перед отключением задачи пойми, не отвечает ли она за драйвер, резервную копию или обновления.",
+      "exampleOutput": "TaskName                         TaskPath                 State\n--------                         --------                 -----\nGoogleUpdaterTaskMachineCore     \\                        Ready\nMicrosoftEdgeUpdateTaskMachineUA \\                        Ready\nOneDrive Standalone Update Task  \\                        Running",
+      "interpretation": "Особенно внимательно смотри на задачи из AppData, Temp и user-writable каталогов.",
+      "relatedTool": "Win+X -> Управление компьютером / taskschd.msc",
+      "scenario": "Когда автозапуск неочевиден и нужно проверить не только Run keys.",
+      "checks": [
+        "TaskPath",
+        "Running/Ready",
+        "пути к действиям задачи"
+      ],
+      "nextCommands": [
+        "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Службы и автозапуск",
+      "title": "Run keys",
+      "command": "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'",
+      "purpose": "Показывает классические точки автозапуска из реестра.",
+      "caution": "Особенно внимательно смотри пути из AppData, Temp, Downloads и нестандартных пользовательских каталогов.",
+      "exampleOutput": "SecurityHealth   : C:\\Windows\\system32\\SecurityHealthSystray.exe\nOneDrive         : C:\\Users\\student\\AppData\\Local\\Microsoft\\OneDrive\\OneDrive.exe\nUpdater          : C:\\Users\\student\\AppData\\Roaming\\Vendor\\updater.exe",
+      "interpretation": "Оцени не только имя записи, но и фактический путь к файлу. User-writable путь в автозапуске почти всегда требует разбора.",
+      "relatedTool": "Win+X -> Терминал (Администратор)",
+      "scenario": "Когда нужно добить ревизию автозагрузки после просмотра Task Scheduler и StartupCommand.",
+      "checks": [
+        "пути в AppData и Temp",
+        "нештатные названия",
+        "HKCU против HKLM"
+      ],
+      "nextCommands": [
+        "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Журналы и защита",
+      "title": "Состояние Defender",
+      "command": "Get-MpComputerStatus",
+      "purpose": "Показывает состояние Microsoft Defender, сигнатур и real-time protection.",
+      "caution": "Если Defender выключен, сначала проверь, не стоит ли другой endpoint protection. Не делай выводы по одному флагу.",
+      "exampleOutput": "AMServiceEnabled          : True\nAntivirusEnabled          : True\nBehaviorMonitorEnabled    : True\nRealTimeProtectionEnabled : True\nQuickScanAge              : 1",
+      "interpretation": "Тебя интересуют флаги Enabled, свежесть сигнатур и отключенные защитные компоненты.",
+      "relatedTool": "Безопасность Windows / Терминал (Администратор)",
+      "scenario": "Когда нужно быстро понять, жива ли базовая защита на хосте.",
+      "checks": [
+        "RealTimeProtectionEnabled",
+        "AntivirusEnabled",
+        "возраст сигнатур"
+      ],
+      "nextCommands": [
+        "Get-NetFirewallProfile | Select-Object Name,Enabled,DefaultInboundAction,DefaultOutboundAction"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Журналы и защита",
+      "title": "Профили firewall",
+      "command": "Get-NetFirewallProfile | Select-Object Name,Enabled,DefaultInboundAction,DefaultOutboundAction",
+      "purpose": "Показывает, включены ли профили Domain, Private и Public и как они обрабатывают трафик.",
+      "caution": "Отключенный Public profile или слишком разрешающий inbound-профиль требует отдельного объяснения.",
+      "exampleOutput": "Name    Enabled DefaultInboundAction DefaultOutboundAction\n----    ------- -------------------- ---------------------\nDomain  True    NotConfigured        NotConfigured\nPrivate True    Block                Allow\nPublic  True    Block                Allow",
+      "interpretation": "Для рабочей станции типичный baseline: Public и Private включены, входящие подключения по умолчанию блокируются.",
+      "relatedTool": "Win+X -> Терминал (Администратор)",
+      "scenario": "Когда проверяешь exposed services и общую сетевую гигиену хоста.",
+      "checks": [
+        "Enabled",
+        "DefaultInboundAction",
+        "Public profile"
+      ],
+      "nextCommands": [
+        "Get-NetTCPConnection -State Listen | Sort-Object LocalPort | Select-Object -First 20 LocalAddress,LocalPort,OwningProcess"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Журналы и защита",
+      "title": "Последние системные события",
+      "command": "Get-WinEvent -LogName System -MaxEvents 8 | Select-Object TimeCreated,Id,ProviderName,LevelDisplayName,Message",
+      "purpose": "Быстро показывает свежие события системного журнала Windows.",
+      "caution": "Системный журнал шумный. Ищи повторяющегося провайдера и повторяющиеся ошибки, а не случайный единичный event.",
+      "exampleOutput": "TimeCreated          Id ProviderName                   LevelDisplayName Message\n-----------          -- ------------                   ---------------- -------\n19.04.2026 01:05:22 7036 Service Control Manager       Information      The Windows Update service entered the running state.\n19.04.2026 01:04:11 10016 DistributedCOM               Warning          The application-specific permission settings do not grant Local Activation...\n19.04.2026 01:03:01 6005 EventLog                      Information      The Event log service was started.",
+      "interpretation": "Это команда для поиска паттерна: один и тот же provider, один и тот же ID, одна и та же история ошибок.",
+      "relatedTool": "Win+X -> Просмотр событий",
+      "scenario": "Когда машина ругается, но еще неясно, смотреть в сеть, службы или storage.",
+      "checks": [
+        "повторяющийся ProviderName",
+        "LevelDisplayName=Error/Warning",
+        "сообщения рядом по времени"
+      ],
+      "nextCommands": [
+        "Get-Service | Where-Object Status -eq 'Running' | Select-Object -First 20 Name,DisplayName,Status"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Windows",
+      "category": "Журналы и защита",
+      "title": "Свежие обновления",
+      "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10 HotFixID,InstalledOn,Description",
+      "purpose": "Показывает последние установленные hotfix и обновления.",
+      "caution": "Это не полная картина Windows Update, но для первого прохода очень полезно.",
+      "exampleOutput": "HotFixID   InstalledOn Description\n--------   ----------- -----------\nKB5036893  18.04.2026  Update\nKB5035702  18.04.2026  Security Update\nKB5035155  10.04.2026  Update",
+      "interpretation": "Полезно видеть, обновлялась ли машина недавно и не застряла ли она на древнем уровне патчей.",
+      "relatedTool": "Параметры -> Центр обновления Windows",
+      "scenario": "Когда хочешь понять, насколько актуальна система по патчам.",
+      "checks": [
+        "InstalledOn",
+        "security updates",
+        "давно ли не обновлялась машина"
+      ],
+      "nextCommands": [
+        "Get-WinEvent -LogName System -MaxEvents 8 | Select-Object TimeCreated,Id,ProviderName,LevelDisplayName,Message"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Доступ и учётные записи",
+      "title": "Текущий пользователь и группы",
+      "command": "id",
+      "purpose": "Показывает текущего пользователя, uid, gid и группы.",
+      "caution": "Это базовая команда чтения. На сервере она помогает сразу понять, работаешь ли ты под нужной учеткой.",
+      "exampleOutput": "uid=1000(student) gid=1000(student) groups=1000(student),4(adm),27(sudo),999(docker)",
+      "interpretation": "Лишняя группа sudo, wheel, docker или adm уже меняет картину риска и видимости системы.",
+      "relatedTool": "id / groups / sudo",
+      "scenario": "Когда нужно понять, под кем ты реально работаешь и какие группы расширяют твои возможности.",
+      "checks": [
+        "наличие sudo/wheel/docker",
+        "uid/gid",
+        "лишние группы"
+      ],
+      "nextCommands": [
+        "sudo -l",
+        "last -a | head -n 10"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Доступ и учётные записи",
+      "title": "Локальные учётные записи",
+      "command": "getent passwd | head -n 10",
+      "purpose": "Показывает первые локальные записи из passwd и напоминает, как выглядит структура пользователей.",
+      "caution": "На production-хостах полный список обычно длиннее. Здесь полезен сам формат и первичная инвентаризация.",
+      "exampleOutput": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nstudent:x:1000:1000:Student:/home/student:/bin/bash",
+      "interpretation": "Смотри на shell, uid и домашний каталог. `/usr/sbin/nologin` и `/bin/false` отделяют сервисные учетные записи от интерактивных.",
+      "relatedTool": "getent / /etc/passwd",
+      "scenario": "Когда нужно понять, какие локальные пользователи есть и кто из них интерактивный.",
+      "checks": [
+        "shell пользователя",
+        "uid<1000 против uid>=1000",
+        "домашний каталог"
+      ],
+      "nextCommands": [
+        "id",
+        "last -a | head -n 10"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Доступ и учётные записи",
+      "title": "Права sudo",
+      "command": "sudo -l",
+      "purpose": "Показывает, какие команды текущий пользователь может запускать через sudo.",
+      "caution": "Команда часто требует пароль и дает чувствительную информацию о правах. Используй ее только на своих системах и в рамках аудита.",
+      "exampleOutput": "Matching Defaults entries for student on lab:\n    env_reset, mail_badpass, secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\nUser student may run the following commands on lab:\n    (ALL : ALL) ALL",
+      "interpretation": "Если видишь ALL или NOPASSWD на широкий набор команд, это очень сильные привилегии.",
+      "relatedTool": "sudoers / /etc/sudoers.d",
+      "scenario": "Когда нужно понять, ограничены ли права пользователя или он фактически администратор.",
+      "checks": [
+        "NOPASSWD",
+        "ALL : ALL",
+        "узко ограниченные команды"
+      ],
+      "nextCommands": [
+        "id",
+        "last -a | head -n 10"
+      ],
+      "runnableInsideApp": false
+    },
+    {
+      "platform": "Linux",
+      "category": "Доступ и учётные записи",
+      "title": "История входов",
+      "command": "last -a | head -n 10",
+      "purpose": "Показывает последние интерактивные входы и источники подключений.",
+      "caution": "На контейнерах и свежих лабораториях вывод может быть пустым. Это не ошибка, а особенность среды.",
+      "exampleOutput": "student  pts/0        192.168.1.20     Fri Apr 19 00:51   still logged in\nreboot   system boot  6.6.36.6-microsoft Fri Apr 19 00:48",
+      "interpretation": "Ищи неожиданные внешние IP и непривычные окна времени. Потом связывай это с SSH-логами.",
+      "relatedTool": "last / journalctl -u ssh",
+      "scenario": "Когда нужно быстро посмотреть, были ли интерактивные входы и откуда.",
+      "checks": [
+        "IP-адрес источника",
+        "время входа",
+        "still logged in"
+      ],
+      "nextCommands": [
+        "sudo journalctl -u ssh -n 20",
+        "id"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Сеть и DNS",
+      "title": "Сетевые интерфейсы",
+      "command": "ip addr show",
+      "purpose": "Показывает сетевые интерфейсы Linux и назначенные адреса.",
+      "caution": "Это современная замена ifconfig на большинстве дистрибутивов.",
+      "exampleOutput": "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500\n    inet 192.168.1.52/24 brd 192.168.1.255 scope global eth0\n3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500\n    inet 172.17.0.1/16 scope global docker0",
+      "interpretation": "Отделяй основной интерфейс от виртуальных мостов Docker, VPN и hypervisor-сетей.",
+      "relatedTool": "ip / NetworkManager / systemd-networkd",
+      "scenario": "Когда сервис недоступен и сначала нужно понять, жив ли вообще сетевой стек хоста.",
+      "checks": [
+        "основной интерфейс",
+        "IPv4/IPv6",
+        "виртуальные интерфейсы"
+      ],
+      "nextCommands": [
+        "ip route",
+        "ss -tulpn"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Сеть и DNS",
+      "title": "Маршруты",
+      "command": "ip route",
+      "purpose": "Показывает таблицу маршрутизации Linux.",
+      "caution": "Без маршрута по умолчанию выход наружу невозможен, как бы хорошо ни выглядел интерфейс.",
+      "exampleOutput": "default via 192.168.1.1 dev eth0 proto dhcp src 192.168.1.52 metric 100\n172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1",
+      "interpretation": "Если нет default route, проблема уже на уровне сетевой конфигурации или DHCP, а не у приложения.",
+      "relatedTool": "ip / routing",
+      "scenario": "Когда хост не видит внешние адреса или странно идет только локальный трафик.",
+      "checks": [
+        "default via",
+        "какой dev используется",
+        "виртуальные подсети"
+      ],
+      "nextCommands": [
+        "ip addr show",
+        "getent hosts example.org"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Сеть и DNS",
+      "title": "Проверка DNS",
+      "command": "getent hosts example.org",
+      "purpose": "Проверяет, как система резолвит имя через настроенные механизмы NSS/DNS.",
+      "caution": "Это удобнее для базовой проверки, чем сразу лезть в dig, особенно на минимальных системах.",
+      "exampleOutput": "93.184.216.34   example.org",
+      "interpretation": "Если имя не резолвится, дальше нет смысла проверять TCP-порт до исправления DNS.",
+      "relatedTool": "getent / resolv.conf",
+      "scenario": "Когда нужно отделить проблему резолвинга от проблемы соединения.",
+      "checks": [
+        "есть ли IP в ответе",
+        "неожиданный адрес",
+        "вообще есть ли ответ"
+      ],
+      "nextCommands": [
+        "ss -tulpn",
+        "ip route"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Сеть и DNS",
+      "title": "Слушающие порты",
+      "command": "ss -tulpn",
+      "purpose": "Показывает TCP и UDP listeners вместе с owning process.",
+      "caution": "На production-хостах лучше фильтровать вывод по конкретному порту, чтобы не тонуть в шуме.",
+      "exampleOutput": "Netid State  Local Address:Port Process\ntcp   LISTEN 0.0.0.0:22       users:((\"sshd\",pid=728,fd=3))\ntcp   LISTEN 127.0.0.1:5432   users:((\"postgres\",pid=991,fd=5))\ntcp   LISTEN 0.0.0.0:8080     users:((\"java\",pid=2044,fd=84))",
+      "interpretation": "Принцип тот же, что и на Windows: кто слушает, на каком адресе и должен ли этот сервис торчать наружу.",
+      "relatedTool": "ss / systemctl / journalctl",
+      "scenario": "Когда нужно быстро сопоставить сервис, порт и процесс.",
+      "checks": [
+        "0.0.0.0 против 127.0.0.1",
+        "неожиданные порты",
+        "имя процесса"
+      ],
+      "nextCommands": [
+        "systemctl --type=service --state=running --no-pager | head -n 20"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Диски и файловые системы",
+      "title": "Свободное место на файловых системах",
+      "command": "df -h",
+      "purpose": "Показывает заполнение файловых систем в удобочитаемом формате.",
+      "caution": "Не путай обычные тома с tmpfs и контейнерными mounts.",
+      "exampleOutput": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda2        80G   62G   14G  82% /\ntmpfs           3.8G  1.2M  3.8G   1% /run\n/dev/sdb1       200G   91G  100G  48% /data",
+      "interpretation": "Если системный раздел перевалил за 80-90 процентов, пора смотреть логи, кэши и контейнерные данные.",
+      "relatedTool": "df / storage",
+      "scenario": "Когда нужно быстро понять, какой mount point на грани.",
+      "checks": [
+        "Use%",
+        "корневой раздел",
+        "tmpfs отдельно от обычных дисков"
+      ],
+      "nextCommands": [
+        "lsblk -f",
+        "findmnt"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Диски и файловые системы",
+      "title": "Блочные устройства",
+      "command": "lsblk -f",
+      "purpose": "Показывает блочные устройства, файловые системы, UUID и точки монтирования.",
+      "caution": "Это карта хранилища. Она нужна, чтобы не перепутать физический диск, раздел и точку монтирования.",
+      "exampleOutput": "NAME   FSTYPE LABEL UUID                                 MOUNTPOINT\nsda\n├─sda1 ext4         2b99b1d8-2a1a-4f9c-8bd3-a9d1d1c2a900 /boot\n└─sda2 ext4 root    d551a8db-4518-4f4d-b91c-87f5a0af1100 /\nsdb1 xfs  data      8f84b0b9-00e9-430d-8d5d-30dd1aef96b1 /data",
+      "interpretation": "Команда помогает быстро увидеть, где root, где data и что реально смонтировано.",
+      "relatedTool": "lsblk / findmnt",
+      "scenario": "Когда нужно понять топологию дисков и разделов, а не только проценты заполнения.",
+      "checks": [
+        "FSTYPE",
+        "MOUNTPOINT",
+        "какое устройство системное"
+      ],
+      "nextCommands": [
+        "df -h",
+        "findmnt"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Диски и файловые системы",
+      "title": "Точки монтирования",
+      "command": "findmnt",
+      "purpose": "Показывает дерево точек монтирования и реальные source/target пары.",
+      "caution": "Очень полезно на системах с контейнерами, overlayfs и большим числом mount points.",
+      "exampleOutput": "TARGET SOURCE           FSTYPE OPTIONS\n/      /dev/sda2        ext4   rw,relatime\n/boot  /dev/sda1        ext4   rw,relatime\n/data  /dev/sdb1        xfs    rw,relatime",
+      "interpretation": "Команда хороша, когда нужно не просто знать размер, а понимать, откуда и куда смонтирован каждый том.",
+      "relatedTool": "findmnt / mount",
+      "scenario": "Когда путаница именно в mount points, а не в общем объеме диска.",
+      "checks": [
+        "TARGET",
+        "SOURCE",
+        "overlay/tmpfs"
+      ],
+      "nextCommands": [
+        "df -h",
+        "lsblk -f"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Процессы и сервисы",
+      "title": "Тяжёлые процессы по памяти",
+      "command": "ps aux --sort=-%mem | head -n 10",
+      "purpose": "Показывает процессы, которые занимают больше всего памяти.",
+      "caution": "Для live-наблюдения удобнее top/htop, но этот срез хорош для отчетов и заметок.",
+      "exampleOutput": "USER   PID %CPU %MEM COMMAND\nmysql  944  5.1 28.4 /usr/sbin/mysqld\njava  2011  9.7 14.2 /usr/bin/java -jar app.jar\nroot   728  0.0  0.6 sshd: /usr/sbin/sshd -D",
+      "interpretation": "Смотри не только на %MEM, но и на роль процесса. База данных может есть память штатно, а случайный java/node-процесс - уже повод разбираться.",
+      "relatedTool": "ps / top / htop",
+      "scenario": "Когда подозреваешь memory pressure и нужно найти главного потребителя.",
+      "checks": [
+        "%MEM",
+        "роль процесса",
+        "неожиданные демоны"
+      ],
+      "nextCommands": [
+        "ps aux --sort=-%cpu | head -n 10",
+        "systemctl --type=service --state=running --no-pager | head -n 20"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Процессы и сервисы",
+      "title": "Тяжёлые процессы по CPU",
+      "command": "ps aux --sort=-%cpu | head -n 10",
+      "purpose": "Показывает процессы, которые потребляют больше всего CPU.",
+      "caution": "Один короткий всплеск не всегда проблема. Ищи устойчивую нагрузку и повторяемый pattern.",
+      "exampleOutput": "USER   PID %CPU %MEM COMMAND\njava  2011 79.3 14.2 /usr/bin/java -jar app.jar\nroot  1448 12.8  1.1 /usr/bin/containerd\nmysql  944  5.1 28.4 /usr/sbin/mysqld",
+      "interpretation": "CPU сам по себе мало о чем говорит, если не понимаешь роль процесса и время наблюдения.",
+      "relatedTool": "ps / top / htop",
+      "scenario": "Когда хост тормозит и нужно быстро локализовать потребителя CPU.",
+      "checks": [
+        "%CPU",
+        "повторяющиеся процессы",
+        "службы без понятной роли"
+      ],
+      "nextCommands": [
+        "systemctl --type=service --state=running --no-pager | head -n 20",
+        "ss -tulpn"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Процессы и сервисы",
+      "title": "Активные systemd-сервисы",
+      "command": "systemctl --type=service --state=running --no-pager | head -n 20",
+      "purpose": "Показывает работающие systemd-сервисы и помогает понять профиль машины.",
+      "caution": "На минимальных образах или контейнерах systemd может быть не основным init, и команда будет менее полезна.",
+      "exampleOutput": "ssh.service          loaded active running OpenBSD Secure Shell server\ncron.service         loaded active running Regular background program processing daemon\ndocker.service       loaded active running Docker Application Container Engine",
+      "interpretation": "По списку можно быстро понять роль машины: jump-host, application server, container node и так далее.",
+      "relatedTool": "systemctl / journalctl",
+      "scenario": "Когда нужно понять, какие демоны реально запущены, а не просто установлены.",
+      "checks": [
+        "unexpected services",
+        "роль хоста",
+        "сетевые/удаленные сервисы"
+      ],
+      "nextCommands": [
+        "ss -tulpn",
+        "ps aux --sort=-%mem | head -n 10"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Процессы и сервисы",
+      "title": "Нагрузка системы",
+      "command": "uptime",
+      "purpose": "Показывает время работы системы и load average.",
+      "caution": "Load average нужно читать вместе с числом CPU и типом нагрузки, а не как абстрактную страшную цифру.",
+      "exampleOutput": " 01:42:18 up 2 days,  4:22,  2 users,  load average: 0.42, 0.51, 0.56",
+      "interpretation": "Стабильно высокий load без понятной причины - повод перейти к top/ps и смотреть, кто грузит систему.",
+      "relatedTool": "uptime / top",
+      "scenario": "Когда нужен очень быстрый health-check по нагрузке хоста.",
+      "checks": [
+        "load average 1/5/15",
+        "время работы",
+        "число пользователей"
+      ],
+      "nextCommands": [
+        "ps aux --sort=-%cpu | head -n 10"
+      ],
+      "runnableInsideApp": true
+    },
+    {
+      "platform": "Linux",
+      "category": "Журналы и безопасность",
+      "title": "Критичные события журнала",
+      "command": "journalctl -p 3 -xb | tail -n 20",
+      "purpose": "Показывает ошибки текущей загрузки системы из journalctl.",
+      "caution": "На некоторых системах нужен sudo или доступ к группе systemd-journal.",
+      "exampleOutput": "Apr 19 00:58:10 lab kernel: EXT4-fs warning (device sda2): ext4_end_bio:344: I/O error 10 writing to inode 524312\nApr 19 00:58:12 lab sshd[742]: error: maximum authentication attempts exceeded for invalid user admin",
+      "interpretation": "Ищи не единичную строку, а повторяющийся тип ошибки: storage, auth, network, service startup.",
+      "relatedTool": "journalctl",
+      "scenario": "Когда нужно быстро понять, о чем система чаще всего жалуется прямо сейчас.",
+      "checks": [
+        "повторяющиеся ошибки",
+        "storage/auth/network",
+        "текущая загрузка"
+      ],
+      "nextCommands": [
+        "systemctl --type=service --state=running --no-pager | head -n 20"
+      ],
+      "runnableInsideApp": false
+    },
+    {
+      "platform": "Linux",
+      "category": "Журналы и безопасность",
+      "title": "SSH-журнал",
+      "command": "sudo journalctl -u ssh -n 20",
+      "purpose": "Показывает последние события SSH: логины, ошибки и brute-force попытки.",
+      "caution": "Обычно нужны повышенные права. Не запускай бездумно на чужих системах.",
+      "exampleOutput": "Apr 19 00:51:02 lab sshd[742]: Accepted password for student from 192.168.1.20 port 50122 ssh2\nApr 19 00:53:11 lab sshd[756]: Failed password for invalid user admin from 185.22.44.9 port 45118 ssh2",
+      "interpretation": "Успешные и неуспешные входы нужно читать вместе: кто стучался, откуда и был ли потом успешный логин тем же источником.",
+      "relatedTool": "journalctl / auth.log",
+      "scenario": "Когда анализируешь удаленный доступ и подозреваешь перебор или несанкционированный вход.",
+      "checks": [
+        "Accepted/Failed password",
+        "IP источника",
+        "повторяющийся brute-force"
+      ],
+      "nextCommands": [
+        "last -a | head -n 10",
+        "id"
+      ],
+      "runnableInsideApp": false
+    }
+  ],
+  "artifactLocations": [
+    {
+      "platform": "Windows",
+      "category": "Учетные записи и доступ",
+      "artifact": "Локальные пользователи и группы",
+      "locations": [
+        "lusrmgr.msc",
+        "Get-LocalUser",
+        "Get-LocalGroupMember -Group Administrators"
+      ],
+      "inspectionCommand": "Get-LocalUser | Format-Table Name,Enabled,LastLogon",
+      "purpose": "Здесь проверяют локальные учетные записи, состояние аккаунтов и состав администраторов."
+    },
+    {
+      "platform": "Windows",
+      "category": "Журналы и события",
+      "artifact": "Журнал безопасности Windows",
+      "locations": [
+        "Просмотр событий -> Windows Logs -> Security",
+        "wevtutil el",
+        "Get-WinEvent -LogName Security"
+      ],
+      "inspectionCommand": "Get-WinEvent -LogName Security -MaxEvents 20",
+      "purpose": "Журнал Security нужен для разбора входов, блокировок, смены привилегий и другой активности безопасности."
+    },
+    {
+      "platform": "Windows",
+      "category": "Сеть и удаленный доступ",
+      "artifact": "Профили и лог межсетевого экрана",
+      "locations": [
+        "Get-NetFirewallProfile",
+        "%systemroot%\\system32\\logfiles\\firewall\\pfirewall.log"
+      ],
+      "inspectionCommand": "Get-NetFirewallProfile; Get-Content $env:SystemRoot\\System32\\LogFiles\\Firewall\\pfirewall.log -Tail 50",
+      "purpose": "Здесь видно, включены ли профили firewall и что именно журналируется по сети."
+    },
+    {
+      "platform": "Windows",
+      "category": "Автозагрузка и запуск",
+      "artifact": "Run keys и автозапуск пользователя",
+      "locations": [
+        "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+        "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+        "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+      ],
+      "inspectionCommand": "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'",
+      "purpose": "Отсюда удобно проверять классические точки автозапуска и нежелательные пользовательские записи."
+    },
+    {
+      "platform": "Windows",
+      "category": "Службы и планировщик",
+      "artifact": "Службы Windows",
+      "locations": [
+        "services.msc",
+        "HKLM\\SYSTEM\\CurrentControlSet\\Services",
+        "Get-Service"
+      ],
+      "inspectionCommand": "Get-Service | Sort-Object Status,DisplayName",
+      "purpose": "Здесь смотрят состояние служб, тип запуска и неожиданные сервисы удаленного доступа."
+    },
+    {
+      "platform": "Windows",
+      "category": "Службы и планировщик",
+      "artifact": "Планировщик задач",
+      "locations": [
+        "taskschd.msc",
+        "C:\\Windows\\System32\\Tasks",
+        "Get-ScheduledTask"
+      ],
+      "inspectionCommand": "Get-ScheduledTask | Where-Object State -ne 'Disabled'",
+      "purpose": "Полезно для поиска кастомных задач, скрытой автоматизации и нежелательных путей запуска."
+    },
+    {
+      "platform": "Windows",
+      "category": "PowerShell и администрирование",
+      "artifact": "История PowerShell",
+      "locations": [
+        "%APPDATA%\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt",
+        "%USERPROFILE%\\Documents\\WindowsPowerShell"
+      ],
+      "inspectionCommand": "Get-Content (Join-Path $env:APPDATA 'Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt') -Tail 50",
+      "purpose": "История команд помогает понять, что запускалось на машине, но смотреть ее нужно только в рамках легитимной диагностики."
+    },
+    {
+      "platform": "Windows",
+      "category": "Временные данные и кэш",
+      "artifact": "Temp и корзина",
+      "locations": [
+        "%TEMP%",
+        "C:\\Windows\\Temp",
+        "C:\\$Recycle.Bin"
+      ],
+      "inspectionCommand": "Get-ChildItem $env:TEMP -Force | Select-Object -First 20",
+      "purpose": "Здесь находятся временные файлы, пользовательский мусор и безопасные цели для controlled cleanup."
+    },
+    {
+      "platform": "Linux",
+      "category": "Журналы и аутентификация",
+      "artifact": "Аутентификация и SSH",
+      "locations": [
+        "/var/log/auth.log",
+        "journalctl -u ssh",
+        "/var/log/secure"
+      ],
+      "inspectionCommand": "sudo journalctl -u ssh -n 50",
+      "purpose": "Эти источники используют для проверки входов, brute-force и проблем с удаленным доступом."
+    },
+    {
+      "platform": "Linux",
+      "category": "Службы и автозапуск",
+      "artifact": "systemd и cron",
+      "locations": [
+        "/etc/systemd/system",
+        "/usr/lib/systemd/system",
+        "/etc/crontab",
+        "/etc/cron.d",
+        "crontab -l"
+      ],
+      "inspectionCommand": "systemctl list-unit-files --type=service; crontab -l",
+      "purpose": "Здесь видны системные сервисы, кастомные unit-файлы и регулярные задания."
+    },
+    {
+      "platform": "Linux",
+      "category": "Сеть и маршрутизация",
+      "artifact": "Сетевые настройки и резолвинг",
+      "locations": [
+        "ip addr show",
+        "ip route show",
+        "/etc/hosts",
+        "/etc/resolv.conf"
+      ],
+      "inspectionCommand": "ip addr show && ip route show",
+      "purpose": "Этот набор помогает быстро понять адреса, маршруты, DNS и локальные переопределения имен."
+    },
+    {
+      "platform": "Linux",
+      "category": "Права и пользователи",
+      "artifact": "Пользователи, sudo и sudoers",
+      "locations": [
+        "/etc/passwd",
+        "/etc/group",
+        "/etc/sudoers",
+        "/etc/sudoers.d"
+      ],
+      "inspectionCommand": "getent passwd | cut -d: -f1,7; sudo -l",
+      "purpose": "Здесь проверяют интерактивные аккаунты, оболочки и правила привилегированного доступа."
+    },
+    {
+      "platform": "Linux",
+      "category": "Следы пользователя",
+      "artifact": "История shell и кэш",
+      "locations": [
+        "~/.bash_history",
+        "~/.zsh_history",
+        "~/.cache",
+        "/tmp",
+        "/var/tmp"
+      ],
+      "inspectionCommand": "ls -la ~/.bash_history ~/.zsh_history ~/.cache /tmp /var/tmp",
+      "purpose": "Полезно для ориентирования в пользовательской активности, временных файлах и безопасной очистке."
+    }
+  ],
+  "toolReferences": [
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Установленные приложения",
+      "openTarget": "Win+X -> Установленные приложения | ms-settings:appsfeatures",
+      "purpose": "Показывает список установленного ПО, издателя, версию и помогает найти лишние программы, старые агенты и автообновляторы.",
+      "useCases": [
+        "Когда нужно понять, откуда взялось незнакомое приложение или служба.",
+        "Когда система захламлена и нужно убрать лишний софт перед оптимизацией.",
+        "Когда проверяешь, есть ли на машине антивирус, VPN-клиент, драйверный пакет или корпоративный агент."
+      ],
+      "whatToCheck": [
+        "Недавно установленные программы и неизвестные издатели.",
+        "Тяжелые программы, которые ставят автозапуск, фоновые службы или телеметрию.",
+        "Дублирующее ПО: несколько архиваторов, браузеров, VPN-клиентов, Java/.NET runtimes."
+      ],
+      "relatedCommands": [
+        "winget list",
+        "Get-Package",
+        "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' | Select-Object DisplayName,Publisher,DisplayVersion"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Управление электропитанием",
+      "openTarget": "Win+X -> Управление электропитанием | powercfg.cpl",
+      "purpose": "Нужно для профилей питания, сна, гибернации и общей оптимизации ноутбука или рабочей станции.",
+      "useCases": [
+        "Когда ноутбук быстро разряжается или уходит в сон слишком агрессивно.",
+        "Когда ПК работает медленно из-за экономичного профиля питания.",
+        "Когда нужно понять, почему устройство не засыпает или просыпается само."
+      ],
+      "whatToCheck": [
+        "Активный план питания и его поведение на батарее и от сети.",
+        "Параметры сна, гибернации, действий при закрытии крышки и кнопки питания.",
+        "Устройства и процессы, которые будят систему или мешают сну."
+      ],
+      "relatedCommands": [
+        "powercfg /list",
+        "powercfg /query",
+        "powercfg /batteryreport",
+        "powercfg /requests"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Просмотр событий",
+      "openTarget": "Win+X -> Просмотр событий | eventvwr.msc",
+      "purpose": "Главная графическая точка входа в журналы Windows: ошибки служб, драйверов, входов, обновлений и системных сбоев.",
+      "useCases": [
+        "Когда после обновления или установки драйвера что-то перестало работать.",
+        "Когда нужно понять, что происходило перед падением системы или приложения.",
+        "Когда расследуешь входы, ошибки служб, блокировки и сообщения безопасности."
+      ],
+      "whatToCheck": [
+        "Windows Logs -> System для служб, драйверов, сетевых и дисковых ошибок.",
+        "Windows Logs -> Security для входов, блокировок и аудита доступа.",
+        "Applications and Services Logs для Defender, PowerShell и других подсистем."
+      ],
+      "relatedCommands": [
+        "Get-WinEvent -LogName System -MaxEvents 20",
+        "Get-WinEvent -LogName Security -MaxEvents 20",
+        "Get-WinEvent -ListLog * | Sort-Object RecordCount -Descending | Select-Object -First 20"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Система",
+      "openTarget": "Win+X -> Система | ms-settings:about",
+      "purpose": "Даёт быстрый обзор устройства: имя хоста, редакция Windows, версия, объём памяти и базовые сведения о системе.",
+      "useCases": [
+        "Когда нужно быстро собрать профиль компьютера для отчёта, заявки или аудита.",
+        "Когда сравниваешь требования ПО с реальной конфигурацией машины.",
+        "Когда проверяешь, какая у хоста редакция Windows и какой build установлен."
+      ],
+      "whatToCheck": [
+        "Имя компьютера и текущее доменное/рабочее окружение.",
+        "Версию Windows, build и объём оперативной памяти.",
+        "Связанные ссылки на расширенные свойства системы и защитные настройки."
+      ],
+      "relatedCommands": [
+        "Get-ComputerInfo | Select-Object CsName,WindowsProductName,WindowsVersion,OsBuildNumber,OsHardwareAbstractionLayer",
+        "systeminfo"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Диспетчер устройств",
+      "openTarget": "Win+X -> Диспетчер устройств | devmgmt.msc",
+      "purpose": "Нужен для драйверов, устройств с ошибками, отключённых адаптеров и проблем с оборудованием.",
+      "useCases": [
+        "Когда не работает сеть, звук, Bluetooth, камера или внешний накопитель.",
+        "Когда после обновления системы появились ошибки драйверов.",
+        "Когда нужно проверить, не отключено ли устройство политикой или вручную."
+      ],
+      "whatToCheck": [
+        "Жёлтые предупреждения, неизвестные устройства и коды ошибок.",
+        "Состояние сетевых адаптеров, накопителей, видеокарты и USB-контроллеров.",
+        "Версию драйвера и дату выпуска для критичных устройств."
+      ],
+      "relatedCommands": [
+        "Get-PnpDevice | Where-Object Status -ne 'OK'",
+        "driverquery",
+        "pnputil /enum-drivers"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Сетевые подключения",
+      "openTarget": "Win+X -> Сетевые подключения | ncpa.cpl",
+      "purpose": "Графическая точка для просмотра адаптеров, их статуса, IPv4/IPv6, DNS и отключения лишних интерфейсов.",
+      "useCases": [
+        "Когда нет интернета, не работает VPN или пропадает доступ к доменным ресурсам.",
+        "Когда на машине несколько адаптеров и нужно понять, какой реально используется.",
+        "Когда нужно быстро проверить, не отключён ли адаптер и не прописан ли вручную странный DNS."
+      ],
+      "whatToCheck": [
+        "Состояние адаптера: включён, отключён, сетевой кабель не подключён.",
+        "Ручные IP/DNS-настройки, мосты, виртуальные адаптеры VPN или гипервизора.",
+        "Лишние интерфейсы, которые путают маршрутизацию или ломают приоритет сетей."
+      ],
+      "relatedCommands": [
+        "Get-NetAdapter",
+        "Get-NetIPConfiguration",
+        "Get-DnsClientServerAddress",
+        "Test-NetConnection example.org -Port 443"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Управление дисками",
+      "openTarget": "Win+X -> Управление дисками | diskmgmt.msc",
+      "purpose": "Нужно для разметки дисков, букв томов, состояния разделов и диагностики storage-проблем.",
+      "useCases": [
+        "Когда диск не виден в Проводнике или пропала буква тома.",
+        "Когда нужно понять, откуда взялось мало места или почему не монтируется том.",
+        "Когда подключён новый диск, SSD или VHD и нужно проверить его состояние."
+      ],
+      "whatToCheck": [
+        "Онлайн ли диск, есть ли буква тома, не осталось ли неразмеченное пространство.",
+        "Файловую систему, размер разделов и состояние томов.",
+        "Системные, скрытые и recovery-разделы, которые не стоит трогать без понимания роли."
+      ],
+      "relatedCommands": [
+        "Get-Disk",
+        "Get-Partition",
+        "Get-Volume"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Управление компьютером",
+      "openTarget": "Win+X -> Управление компьютером | compmgmt.msc",
+      "purpose": "Сводная MMC-консоль для локальных пользователей, общих папок, журналов, планировщика и других оснасток.",
+      "useCases": [
+        "Когда нужен обзор сразу по нескольким админским разделам.",
+        "Когда хочешь показать преподавателю или пользователю единый путь до разных оснасток.",
+        "Когда удобнее идти через MMC, а не помнить все отдельные .msc-файлы."
+      ],
+      "whatToCheck": [
+        "Local Users and Groups, Shared Folders, Device Manager, Disk Management.",
+        "Event Viewer и другие оснастки, полезные для диагностики и аудита.",
+        "Какие ветки доступны только на Pro/Enterprise и при повышенных правах."
+      ],
+      "relatedCommands": [
+        "Get-LocalUser",
+        "Get-SmbShare",
+        "Get-Service",
+        "Get-ScheduledTask"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Терминал",
+      "openTarget": "Win+X -> Терминал | wt.exe",
+      "purpose": "Основная рабочая точка для PowerShell, CMD и автоматизации без повышения привилегий.",
+      "useCases": [
+        "Когда достаточно чтения логов, сбора инвентаря и диагностики без admin-rights.",
+        "Когда изучаешь команды и хочешь безопасно повторять read-only сценарии.",
+        "Когда нужен быстрый запуск PowerShell-утилит, скриптов и конвейеров."
+      ],
+      "whatToCheck": [
+        "Текущий пользователь и контекст сеанса.",
+        "Ошибки прав доступа: они подсказывают, где реально нужен elevated shell.",
+        "Повторяемые команды, которые лучше оформить в скрипт или заметку."
+      ],
+      "relatedCommands": [
+        "Get-Help Get-Service",
+        "Get-Command *Net*",
+        "Get-Location"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Терминал (Администратор)",
+      "openTarget": "Win+X -> Терминал (Администратор) | elevated wt.exe",
+      "purpose": "Нужен только для команд, которые реально требуют повышенных прав: часть журналов, firewall, драйверы, службы и системные настройки.",
+      "useCases": [
+        "Когда обычный терминал упирается в Access Denied.",
+        "Когда нужно читать или менять защищённые системные настройки.",
+        "Когда проверяешь сервисы, драйверы, firewall и некоторые журналы безопасности."
+      ],
+      "whatToCheck": [
+        "Действительно ли задача требует admin-rights или это просто привычка.",
+        "Какие команды безопасно читать, а какие уже меняют состояние системы.",
+        "Что запуск от имени администратора повышает риск случайных изменений."
+      ],
+      "relatedCommands": [
+        "whoami /groups",
+        "Get-NetFirewallProfile",
+        "Get-WinEvent -LogName Security -MaxEvents 20"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Диспетчер задач",
+      "openTarget": "Win+X -> Диспетчер задач | taskmgr",
+      "purpose": "Быстрый визуальный инструмент для процессов, автозагрузки, нагрузки CPU/RAM/диска и базовой оптимизации.",
+      "useCases": [
+        "Когда компьютер тормозит и нужно быстро найти самый тяжёлый процесс.",
+        "Когда нужно оценить, что грузит диск, память или сеть.",
+        "Когда проверяешь автозагрузку и влияние приложений на старт системы."
+      ],
+      "whatToCheck": [
+        "Вкладку Processes для текущей нагрузки и трендов по CPU/RAM/Disk/Network.",
+        "Вкладку Startup apps для тяжёлого или лишнего автозапуска.",
+        "Подозрительные процессы с неясным именем, отсутствующим издателем или странным путём."
+      ],
+      "relatedCommands": [
+        "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 ProcessName,CPU,WS",
+        "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location",
+        "Get-Counter '\\Processor(_Total)\\% Processor Time'"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Параметры",
+      "openTarget": "Win+X -> Параметры | ms-settings:",
+      "purpose": "Современный центр настройки Windows: обновления, приложения, сеть, конфиденциальность, учётки и восстановление.",
+      "useCases": [
+        "Когда пользователю проще показать GUI-путь, чем диктовать команду.",
+        "Когда нужно связать командную диагностику с понятной графической настройкой.",
+        "Когда оформляешь учебный сценарий 'где это найти в интерфейсе'."
+      ],
+      "whatToCheck": [
+        "Разделы Windows Update, Apps, Network & Internet, Accounts, Privacy & Security.",
+        "Какая настройка меняется сразу, а какая только перенаправляет в старую панель управления.",
+        "Какие экраны полезны для объяснения новичку: память, автозапуск, обновления, восстановление."
+      ],
+      "relatedCommands": [
+        "start ms-settings:windowsupdate",
+        "start ms-settings:network-status",
+        "start ms-settings:appsfeatures"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Win+X и системные оснастки",
+      "title": "Выполнить",
+      "openTarget": "Win+X -> Выполнить | Win+R",
+      "purpose": "Самый быстрый способ открыть системные .msc, панели и диагностические утилиты по имени.",
+      "useCases": [
+        "Когда нужно быстро попасть в eventvwr.msc, services.msc, taskschd.msc или ncpa.cpl.",
+        "Когда строишь себе короткие маршруты по админским оснасткам.",
+        "Когда хочешь показать пользователю простой повторяемый способ открыть нужную настройку."
+      ],
+      "whatToCheck": [
+        "Какие команды открывают современные Settings, а какие классические mmc/cpl-оснастки.",
+        "Какие ярлыки реально ускоряют работу: eventvwr.msc, devmgmt.msc, diskmgmt.msc, ms-settings:*.",
+        "Что Run отлично подходит для обучения навигации по Windows."
+      ],
+      "relatedCommands": [
+        "eventvwr.msc",
+        "services.msc",
+        "taskschd.msc",
+        "ncpa.cpl",
+        "powercfg.cpl"
+      ]
+    }
+  ],
+  "playbooks": [
+    {
+      "platform": "Windows",
+      "category": "Сеть",
+      "title": "Сайт не открывается",
+      "symptom": "Браузер не открывает сайт, но Wi-Fi или Ethernet вроде бы подключены.",
+      "goal": "Отделить проблему DNS, маршрута, локального интерфейса и удаленного порта.",
+      "steps": [
+        "Проверь, есть ли у активного интерфейса корректный IPv4-адрес, шлюз и DNS.",
+        "Отдельно проверь резолвинг имени сайта и доступность TCP-порта 443.",
+        "Если имя резолвится, но порт не открывается, ищи фильтрацию на пути или отказ сервиса."
+      ],
+      "commands": [
+        "Get-NetIPConfiguration",
+        "Resolve-DnsName example.org",
+        "Test-NetConnection example.org -Port 443"
+      ],
+      "expectedSignals": [
+        "Активный интерфейс не должен висеть без gateway.",
+        "DNS должен вернуть адрес, иначе проблема в резолвинге.",
+        "TcpTestSucceeded=False при рабочем DNS обычно указывает на сеть, firewall или удаленный сервис."
+      ],
+      "relatedTools": [
+        "Win+X -> Сетевые подключения",
+        "Параметры -> Сеть и Интернет"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Сеть",
+      "title": "Найти лишний открытый порт",
+      "symptom": "Нужно понять, какие сервисы слушают входящие подключения на машине.",
+      "goal": "Быстро связать порт с процессом и решить, нужен ли он вообще.",
+      "steps": [
+        "Выведи слушающие TCP-порты и отметь сервисные порты удаленного доступа.",
+        "Если видишь 445, 3389, 5985 или нестандартный порт, выясни owning process.",
+        "Сопоставь процесс с ролью хоста и реши, должен ли этот сервис быть открыт."
+      ],
+      "commands": [
+        "Get-NetTCPConnection -State Listen | Sort-Object LocalPort",
+        "Get-Service | Where-Object Status -eq 'Running'"
+      ],
+      "expectedSignals": [
+        "Порт на 0.0.0.0 виден всем интерфейсам, а не только локально.",
+        "127.0.0.1 обычно безопаснее, чем 0.0.0.0.",
+        "Любой неизвестный listener требует привязки к процессу и назначению."
+      ],
+      "relatedTools": [
+        "Win+X -> Терминал (Администратор)",
+        "Win+X -> Диспетчер задач"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Диски",
+      "title": "Заканчивается место на системном диске",
+      "symptom": "Windows начал обновляться с ошибками, хранилище почти заполнено или приложения тормозят.",
+      "goal": "Понять, на каком томе проблема и где искать мусор или лишние данные.",
+      "steps": [
+        "Проверь свободное место по всем томам и отдельно системный диск.",
+        "Посмотри временные каталоги и стандартные точки накопления мусора.",
+        "Перед очисткой убедись, что речь не о recovery/system разделах."
+      ],
+      "commands": [
+        "Get-Volume | Select-Object DriveLetter,FileSystemLabel,SizeRemaining,Size",
+        "Get-PSDrive -PSProvider FileSystem",
+        "Get-ChildItem $env:TEMP -Force | Select-Object -First 20 Name,Length,LastWriteTime"
+      ],
+      "expectedSignals": [
+        "Если на системном томе осталось меньше 10-15 процентов, жди проблем с обновлениями и кэшем.",
+        "Recovery-раздел не чистят вручную без четкого понимания последствий.",
+        "Большой и старый TEMP обычно говорит, что есть смысл запускать безопасную очистку."
+      ],
+      "relatedTools": [
+        "Win+X -> Управление дисками",
+        "Параметры -> Система -> Память"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Процессы и производительность",
+      "title": "Компьютер долго входит в систему",
+      "symptom": "После логина долго открывается рабочий стол, вентиляторы шумят, система ощущается тяжелой.",
+      "goal": "Разделить проблему на автозагрузку, прожорливые процессы и нехватку памяти.",
+      "steps": [
+        "Сначала посмотри процессы с максимальным CPU или памятью.",
+        "Потом проверь автозагрузку и отличи реально нужные агенты от лишних.",
+        "Если памяти мало, проверь метрику свободной памяти и ищи долгоживущий виновный процесс."
+      ],
+      "commands": [
+        "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 ProcessName,CPU,WS",
+        "Get-CimInstance Win32_StartupCommand | Select-Object Name,Command,Location",
+        "Get-Counter '\\Memory\\Available MBytes'"
+      ],
+      "expectedSignals": [
+        "CPU показывает накопленное время, а WS отражает рабочий набор памяти.",
+        "Автозагрузка из AppData и user-writable путей требует отдельной проверки.",
+        "Очень низкий Available MBytes обычно означает давление на память и активный paging."
+      ],
+      "relatedTools": [
+        "Win+X -> Диспетчер задач",
+        "Win+X -> Установленные приложения"
+      ]
+    },
+    {
+      "platform": "Windows",
+      "category": "Журналы и защита",
+      "title": "Нужно понять, почему система ругается на безопасность",
+      "symptom": "Есть предупреждения по защите, firewall или системным событиям, но неясно, куда смотреть первым.",
+      "goal": "Собрать защитную картину: Defender, firewall и последние критичные системные события.",
+      "steps": [
+        "Проверь, включены ли защитные профили и real-time protection.",
+        "Посмотри firewall-профили и базовую inbound/outbound политику.",
+        "После этого прочитай последние системные события, а не только Security."
+      ],
+      "commands": [
+        "Get-MpComputerStatus",
+        "Get-NetFirewallProfile | Select-Object Name,Enabled,DefaultInboundAction,DefaultOutboundAction",
+        "Get-WinEvent -LogName System -MaxEvents 8 | Select-Object TimeCreated,Id,ProviderName,LevelDisplayName,Message"
+      ],
+      "expectedSignals": [
+        "Старые сигнатуры или отключенный real-time protection требуют объяснения.",
+        "Public-профиль firewall не должен быть выключен без причины.",
+        "В системных событиях ищи повторяющиеся ошибки одного provider, а не единичный шум."
+      ],
+      "relatedTools": [
+        "Win+X -> Просмотр событий",
+        "Безопасность Windows"
+      ]
+    },
+    {
+      "platform": "Linux",
+      "category": "Сеть",
+      "title": "Linux-хост не видит сеть",
+      "symptom": "Сервис в Linux не отвечает, и нужно быстро отделить проблему интерфейса от маршрута.",
+      "goal": "Проверить адреса, маршрут по умолчанию и слушающие порты сервиса.",
+      "steps": [
+        "Сначала посмотри адреса интерфейсов и не перепутай реальный интерфейс с docker0 или bridge.",
+        "Проверь маршрут по умолчанию и имя шлюза.",
+        "Если сервис должен быть доступен, выведи listeners и адреса привязки."
+      ],
+      "commands": [
+        "ip addr show",
+        "ip route",
+        "ss -tulpn"
+      ],
+      "expectedSignals": [
+        "Отсутствие default route объясняет невозможность выйти наружу.",
+        "127.0.0.1 и 0.0.0.0 несут разный смысл для доступности сервиса.",
+        "Bridge и container-сети не должны путать основную картину хоста."
+      ],
+      "relatedTools": [
+        "NetworkManager / systemd-networkd",
+        "journalctl -u NetworkManager"
+      ]
+    },
+    {
+      "platform": "Linux",
+      "category": "Диски",
+      "title": "Заполняется корневой раздел",
+      "symptom": "На Linux начинаются ошибки записи, падают сервисы или обновления из-за нехватки места.",
+      "goal": "Найти перегруженную файловую систему и понять, кто съел место.",
+      "steps": [
+        "Начни с общей картины по файловым системам.",
+        "Потом проверь блочные устройства и точки монтирования.",
+        "Если корень близок к 100 процентам, отдельно смотри /var/log, контейнеры и кэш пакетов."
+      ],
+      "commands": [
+        "df -h",
+        "lsblk -f",
+        "du -sh /var/log/* 2>/dev/null | sort -h | tail -n 10"
+      ],
+      "expectedSignals": [
+        "tmpfs не нужно лечить как обычный диск.",
+        "Системный раздел за 80-90 процентов уже требует действий.",
+        "Резкий рост в /var/log часто связан с циклической ошибкой сервиса."
+      ],
+      "relatedTools": [
+        "lsblk / findmnt",
+        "journalctl"
+      ]
+    },
+    {
+      "platform": "Linux",
+      "category": "Доступ и журналы",
+      "title": "Проверить, кто логинился и какие права есть",
+      "symptom": "Нужно быстро разобраться в локальных учетках, sudo и истории входов.",
+      "goal": "Получить минимальную картину по пользователям, sudo и недавним логинам.",
+      "steps": [
+        "Сначала выведи текущего пользователя и его группы.",
+        "Потом проверь sudo-права и историю логинов.",
+        "Если видишь неожиданный логин, переходи к SSH-логам и журналам auth."
+      ],
+      "commands": [
+        "id",
+        "sudo -l",
+        "last -a | head -n 10"
+      ],
+      "expectedSignals": [
+        "Лишняя группа sudo или wheel - уже повод на ревизию доступа.",
+        "Неожиданный удаленный IP в last нужно сопоставлять с SSH-журналом.",
+        "Пустой вывод last возможен на свежей системе или в контейнере."
+      ],
+      "relatedTools": [
+        "journalctl -u ssh",
+        "/var/log/auth.log"
+      ]
+    },
+    {
+      "platform": "Linux",
+      "category": "Процессы и сервисы",
+      "title": "Найти тяжёлый процесс",
+      "symptom": "Хост тормозит, но пока неясно, виноват CPU, память или конкретный демон.",
+      "goal": "Отделить нагрузку CPU, память и профиль запущенных сервисов.",
+      "steps": [
+        "Сначала отсортируй процессы по памяти и CPU.",
+        "Потом посмотри список активных сервисов и роль машины.",
+        "Если процесс непонятен, связывай его с unit, портом и владельцем."
+      ],
+      "commands": [
+        "ps aux --sort=-%mem | head -n 10",
+        "ps aux --sort=-%cpu | head -n 10",
+        "systemctl --type=service --state=running --no-pager | head -n 20"
+      ],
+      "expectedSignals": [
+        "Рост памяти базы данных может быть нормой, а случайный пользовательский процесс - нет.",
+        "Высокий CPU без понятной роли часто быстрее ловится через связку ps + systemctl + ss.",
+        "Сервисный профиль хоста должен совпадать с тем, для чего этот сервер нужен."
+      ],
+      "relatedTools": [
+        "systemctl",
+        "top / htop"
+      ]
+    }
+  ],
+  "liveCommandResults": [
+  ],
+  "learningSections": [
+    {
+      "audience": "Системное администрирование",
+      "title": "База Windows и инфраструктуры",
+      "topics": [
+        "Устройство Windows: процессы, службы, драйверы, реестр, файловые системы и загрузка ОС.",
+        "Пользователи, группы, права, UAC, NTFS ACL и локальные политики безопасности.",
+        "Сетевые основы: TCP/IP, DNS, DHCP, NAT, VPN, SMB, RDP и WinRM.",
+        "Практика ориентирования в Event Viewer, services.msc, taskschd.msc и реестре."
+      ],
+      "labs": [
+        "Поднять тестовую Windows VM и вручную настроить локальные учетные записи, UAC и NTFS-права.",
+        "Через PowerShell проверить сетевую конфигурацию, DNS, listening ports и firewall profiles.",
+        "Собрать собственный checklist первичной диагностики рабочей станции."
+      ],
+      "milestones": [
+        "Уметь объяснить, как загружается Windows и где лежат ключевые системные настройки.",
+        "Уметь разбирать базовые проблемы входа, прав доступа и сети без хаотичного набора команд.",
+        "Уметь быстро собрать базовый профиль хоста для отчета или инцидента."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "PowerShell и автоматизация",
+      "topics": [
+        "Конвейер PowerShell, объекты, модули, remoting, jobs и scheduled tasks.",
+        "Автоматизация инвентаризации: службы, процессы, обновления, firewall и event logs.",
+        "Безопасные скрипты, логирование, обработка ошибок и экспорт отчетов.",
+        "Работа с CSV, JSON, Markdown и форматированным выводом для отчетности."
+      ],
+      "labs": [
+        "Сделать набор скриптов для инвентаризации пользователей, сервисов и сетевых интерфейсов.",
+        "Настроить Scheduled Task для регулярного defensive-аудита и сохранения отчетов.",
+        "Сделать PowerShell-скрипт, который собирает сведения о Windows Update, firewall и логах в один JSON."
+      ],
+      "milestones": [
+        "Писать PowerShell-скрипты осознанно, а не копипастить отдельные команды.",
+        "Автоматизировать повторяемые задачи администратора и техподдержки.",
+        "Уметь оформлять PowerShell-утилиты как полезные внутренние инструменты."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Сети и диагностика",
+      "topics": [
+        "TCP/IP, ARP, маршрутизация, NAT, DNS, DHCP, MTU и базовая модель OSI/TCP-IP.",
+        "Диагностика через ping, tracert, nslookup, Test-NetConnection, netstat и Wireshark.",
+        "Понимание типовых проблем: DNS не резолвит, маршрут уходит не туда, порт недоступен, firewall режет трафик.",
+        "Разница между локальной проблемой хоста, проблемой сети и проблемой удаленного сервиса."
+      ],
+      "labs": [
+        "Смоделировать проблемы DNS, gateway и firewall на тестовой машине и разобрать их по шагам.",
+        "Снять трафик в Wireshark и вручную разобрать DNS-запрос, TCP three-way handshake и TLS ClientHello.",
+        "Собрать мини-памятку по диагностике 'не открывается сайт/сервис/порт'."
+      ],
+      "milestones": [
+        "Уметь уверенно отличать сетевую проблему от проблем приложения и доступа.",
+        "Понимать, какие команды проверяют адресацию, какие маршруты, а какие доступность порта.",
+        "Уметь объяснить базовую сетевую картину на одном хосте без внешних подсказок."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Linux и кроссплатформенная админка",
+      "topics": [
+        "Структура Linux: процессы, systemd, journald, package managers, users/groups, sudo и permissions.",
+        "Диагностика через ip, ss, ping, dig, curl, journalctl и системные журналы.",
+        "Автоматизация через Bash, cron, systemd timers и базовые shell-скрипты.",
+        "Сравнение админских задач Windows и Linux: сервисы, журналы, права, firewall, автозапуск."
+      ],
+      "labs": [
+        "Поднять Linux VM и повторить те же проверки, что и на Windows: пользователи, порты, сервисы и firewall.",
+        "Собрать собственную шпаргалку Linux-команд для сети, логов, сервисов и прав доступа.",
+        "Сделать таблицу соответствий: Event Viewer vs journalctl, Services vs systemd, Task Scheduler vs cron."
+      ],
+      "milestones": [
+        "Понимать, где на Linux смотреть сервисы, журналы, маршруты и firewall.",
+        "Уметь сравнивать Windows- и Linux-подходы к одной и той же админской задаче.",
+        "Уметь быстро собрать baseline Linux-хоста для hardening или диагностики."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Обслуживание, обновления и восстановление",
+      "topics": [
+        "Windows Update, драйверы, журналы, точки восстановления, резервное копирование и recovery.",
+        "Мониторинг памяти, диска, автозагрузки, служб и общего состояния хоста.",
+        "Безопасная очистка временных данных и понимание, что именно можно удалять без вреда.",
+        "Проверка health-check: аптайм, свободное место, pending reboot, обновления, защитные службы."
+      ],
+      "labs": [
+        "Собрать чек-лист обслуживания рабочей станции и сервера.",
+        "Отработать сценарий обновления, перезагрузки и отката на тестовой VM.",
+        "Проверить, как меняется состояние хоста до и после очистки temp и корзины."
+      ],
+      "milestones": [
+        "Уметь регулярно вести базовый health-check Windows-хоста.",
+        "Быстро собирать первичную диагностику после инцидента или жалобы пользователя.",
+        "Понимать, где профилактика, а где уже расследование или remediation."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Фундамент ИБ",
+      "topics": [
+        "CIA triad, риск-менеджмент, поверхность атаки, уязвимости, hardening и defence in depth.",
+        "Аутентификация и авторизация, MFA, least privilege, password policy и account lockout.",
+        "Сетевые угрозы, lateral movement, persistence, privilege escalation, phishing и malware basics.",
+        "Понимание разницы между preventive, detective и corrective controls."
+      ],
+      "labs": [
+        "Сопоставить настройки локальной безопасности Windows с типовыми рисками.",
+        "Разобрать несколько техник MITRE ATT&CK и найти их возможные следы на Windows-хосте.",
+        "Составить небольшую матрицу рисков для рабочей станции, сервера и домашней лаборатории."
+      ],
+      "milestones": [
+        "Уметь читать security baseline и объяснять назначение каждого контроля.",
+        "Отличать плохую конфигурацию от нормальной административной активности.",
+        "Понимать, как технические настройки связаны с реальными рисками бизнеса или пользователя."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Windows Security Operations",
+      "topics": [
+        "Defender, firewall, audit policy, event logs, scheduled tasks, autoruns, services и PowerShell logging.",
+        "Индикаторы компрометации в учетках, сервисах, задачах, сетевых подключениях и журналах.",
+        "Базовый incident response: triage, containment, evidence preservation, eradication и lessons learned.",
+        "Разница между рутинной админской активностью и подозрительным поведением на хосте."
+      ],
+      "labs": [
+        "Собрать playbook проверки хоста: аккаунты, порты, сервисы, обновления, firewall и журналы.",
+        "Сравнить нормальные и подозрительные scheduled tasks на тестовой машине.",
+        "Подготовить шаблон отчета по findings: что обнаружено, почему это важно, что делать дальше."
+      ],
+      "milestones": [
+        "Уметь провести первичный defensive-аудит Windows-машины.",
+        "Уметь оформлять findings и рекомендации понятным техническим языком.",
+        "Уметь защищать свои выводы ссылкой на конкретные артефакты и настройки."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Журналы, артефакты и форензика хоста",
+      "topics": [
+        "Windows Security/System/Application logs, PowerShell history, Run keys, Scheduled Tasks, Services и Prefetch basics.",
+        "Linux auth logs, journalctl, cron, shell history, package logs и systemd units.",
+        "Понимание, какие артефакты относятся к входам, запуску ПО, сети, persistence и изменениям конфигурации.",
+        "Аккуратная работа с артефактами: сначала чтение и фиксация, потом только изменения."
+      ],
+      "labs": [
+        "Сделать собственную карту артефактов Windows и Linux для расследования инцидента на хосте.",
+        "Разобрать одно событие входа в Windows и один вход по SSH в Linux с поиском всех связанных следов.",
+        "Подготовить краткий runbook 'что смотреть первым делом на подозрительном хосте'."
+      ],
+      "milestones": [
+        "Понимать, где искать следы активности пользователя, службы, задачи и удаленного доступа.",
+        "Уметь строить последовательность событий по нескольким разным источникам.",
+        "Уметь не ломать доказательную картину лишними действиями на хосте."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Детектирование и мониторинг",
+      "topics": [
+        "Логика detection engineering: событие, сигнал, корреляция, шум, приоритет, false positive и tuning.",
+        "Базовые источники телеметрии: Windows Event Logs, Defender, firewall, Sysmon, PowerShell, VPN и proxy.",
+        "Разница между алертом, наблюдением, finding и подтвержденным инцидентом.",
+        "Минимальный набор проверок, который нужен even without SIEM: локальные журналы, сервисы, задачи, сеть."
+      ],
+      "labs": [
+        "Сформулировать 10 простых детектирующих правил на человеческом языке для Windows-хоста.",
+        "Разобрать, почему открытый порт или подозрительная задача сами по себе еще не всегда инцидент.",
+        "Сделать таблицу 'артефакт -> какой риск он может показывать -> чем подтвердить'."
+      ],
+      "milestones": [
+        "Мыслить не только командами, но и гипотезами наблюдения.",
+        "Понимать, как отличать полезный сигнал от шумного признака.",
+        "Уметь проектировать defensive-checks даже без полноценного SIEM."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Linux Security Basics",
+      "topics": [
+        "SSH, sudo, PAM, journalctl, nftables или UFW, file permissions, SUID/SGID и systemd services.",
+        "Поиск подозрительных cron jobs, нестандартных сервисов, открытых портов и опасных прав доступа.",
+        "Базовый hardening: обновления, SELinux или AppArmor, fail2ban и ограниченные учетные записи.",
+        "Понимание типовых рисков на интернет-доступном Linux-хосте."
+      ],
+      "labs": [
+        "Проверить Linux-хост на открытые порты, cron, sudoers, SUID binaries и журнал SSH.",
+        "Сравнить нормальные и подозрительные systemd units на тестовой машине.",
+        "Подготовить краткий Linux hardening checklist для VM или VPS."
+      ],
+      "milestones": [
+        "Уметь делать базовый defensive-review Linux-сервера без хаотичного набора команд.",
+        "Понимать, какие Linux-артефакты чаще всего важны для hardening и расследования.",
+        "Уметь быстро оценить, где у Linux-хоста самая слабая точка: сеть, права, сервисы или обновления."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Identity, AD и корпоративная среда",
+      "topics": [
+        "Active Directory, Kerberos, NTLM, GPO, delegated administration, service accounts и secrets hygiene.",
+        "Разделение административных ролей, tiering, jump hosts, LAPS и аудит привилегированного доступа.",
+        "Onboarding и offboarding, inventory, patching и vulnerability management.",
+        "Почему локальные администраторы на рабочих станциях часто становятся входной точкой для lateral movement."
+      ],
+      "labs": [
+        "Подготовить схему ролей доступа для небольшой организации.",
+        "Смоделировать безопасный жизненный цикл учетной записи сотрудника.",
+        "Составить список контролей для рабочих станций, серверов и учетных записей администраторов."
+      ],
+      "milestones": [
+        "Понимать, где чаще всего ломается контроль доступа в корпоративной Windows-среде.",
+        "Понимать, почему локальные администраторы опасны на рабочих станциях.",
+        "Уметь объяснить бизнесу и преподавателю, зачем нужны tiering, GPO и контроль привилегий."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Веб, API и прикладная база",
+      "topics": [
+        "HTTP, HTTPS, cookies, tokens, headers, reverse proxy, REST API и базовая веб-авторизация.",
+        "Частые прикладные риски: слабая аутентификация, открытые admin-панели, утечки токенов, небезопасные API.",
+        "Логи веб-сервера, коды ответов, rate limiting и роль reverse proxy/firewall.",
+        "Почему специалисту по ИБ полезно понимать веб и API даже при хостовом уклоне."
+      ],
+      "labs": [
+        "Разобрать запросы браузера к тестовому сайту через DevTools и понять, где проходят токены и cookies.",
+        "Сравнить обычную пользовательскую активность в веб-приложении и подозрительную последовательность запросов.",
+        "Сделать конспект по тому, какие журналы и метрики нужны для расследования веб-инцидента."
+      ],
+      "milestones": [
+        "Понимать, как хостовая безопасность связывается с безопасностью приложений и API.",
+        "Уметь читать базовые веб-логи и не путаться в кодах ответов и типовых запросах.",
+        "Иметь фундамент для дальнейшего роста в blue team, DevSecOps или application security."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Vulnerability Management и hardening",
+      "topics": [
+        "Разница между finding, misconfiguration, vulnerability и exploit path.",
+        "Приоритизация: что критично исправлять сразу, что можно планировать, а что принять как риск.",
+        "Hardening Windows и Linux: отключение лишнего, уменьшение поверхности атаки, контроль удаленного доступа.",
+        "Связь между аудитом конфигурации, патчами, сервисами и правами доступа."
+      ],
+      "labs": [
+        "Сделать собственную матрицу приоритизации findings для дипломного проекта.",
+        "Сравнить два набора настроек: удобные, но небезопасные, и более защищенные, но управляемые.",
+        "Подготовить рекомендации в стиле: быстрые исправления, плановые исправления, мониторинг."
+      ],
+      "milestones": [
+        "Уметь не просто перечислять проблемы, а приоритизировать их по риску.",
+        "Уметь давать рекомендации, которые реально можно внедрить.",
+        "Понимать, где hardening помогает, а где уже нужен процесс мониторинга и реагирования."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Incident Response и мышление аналитика",
+      "topics": [
+        "Этапы IR: подготовка, triage, containment, investigation, eradication, recovery и post-incident review.",
+        "Формулировка гипотез: что именно подозрительно, чем это подтверждается, чего не хватает для уверенности.",
+        "Работа с неопределенностью: не делать громких выводов без артефактов, но и не игнорировать признаки.",
+        "Коммуникация findings: кратко, доказуемо, с понятным следующим шагом."
+      ],
+      "labs": [
+        "Разобрать вымышленный инцидент на Windows-хосте и расписать пошаговый triage.",
+        "Сделать шаблон 'что писать в отчете после первичной проверки хоста'.",
+        "Смоделировать ситуацию, где один finding оказывается ложной тревогой, а другой требует действий."
+      ],
+      "milestones": [
+        "Мыслить как аналитик, а не как набор команд.",
+        "Уметь отличать факт, интерпретацию и предположение.",
+        "Уметь обосновать, почему конкретная проверка была важна и что она показала."
+      ]
+    },
+    {
+      "audience": "Общее развитие",
+      "title": "Практический стек и лаборатории",
+      "topics": [
+        "VirtualBox или Hyper-V, Windows Sandbox, Sysinternals, Wireshark, Procmon, Autoruns и Event Viewer.",
+        "Git, CMake, C++ для внутренних defensive tools, Markdown-отчеты, JSON-экспорт и история запусков.",
+        "Документирование: runbooks, baselines, чек-листы и отчеты по findings.",
+        "Организация домашней лаборатории: отдельные VM, снимки, сценарии поломок и сценарии аудита."
+      ],
+      "labs": [
+        "Поднять домашний lab из нескольких VM и отрабатывать hardening и расследование.",
+        "Сделать мини-набор утилит: инвентаризация, аудит прав, аудит firewall и анализ журналов.",
+        "Подготовить скриншоты, сценарии запуска и демонстрационные кейсы для дипломной защиты."
+      ],
+      "milestones": [
+        "Не просто знать команды, а уметь строить вокруг них собственные инструменты и процессы.",
+        "Собрать портфолио учебных defensive-проектов, пригодное для диплома и собеседований.",
+        "Уметь показать проект как практический инструмент, а не просто набор кода."
+      ]
+    },
+    {
+      "audience": "Общее развитие",
+      "title": "Рост в C++ и defensive tooling",
+      "topics": [
+        "Как писать утилиты на C++ для Windows: WinAPI, Unicode, JSON, файлы, процессы, реестр, многомодульность.",
+        "Как проектировать defensive-инструмент: слой данных, слой модулей, сервисный слой, CLI и GUI.",
+        "Чистый CMake, разделение .h/.cpp, тестируемость, расширяемость и аккуратная работа с системными API.",
+        "Разница между учебной PoC-утилитой и проектом, который не стыдно показать на GitHub."
+      ],
+      "labs": [
+        "Добавить в проект еще один модуль аудита по своему выбору и встроить его во все слои.",
+        "Подготовить README со скриншотами, сценарием запуска и пояснением архитектуры.",
+        "Сделать дорожную карту развития проекта после диплома: SQLite, autoruns, diff history, политика baseline."
+      ],
+      "milestones": [
+        "Уметь объяснить архитектуру проекта преподавателю и на собеседовании.",
+        "Уметь развивать инструмент дальше без хаотичных переписываний.",
+        "Собрать проект, который выглядит как осмысленный инженерный продукт."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Оснастки Windows и быстрая навигация",
+      "topics": [
+        "Что находится в меню Win+X: Event Viewer, Device Manager, Disk Management, Network Connections, Task Manager, Power Options и Terminal.",
+        "Разница между современными Settings, классическими .cpl и MMC-оснастками .msc.",
+        "Как быстро открывать системные разделы через Win+R: eventvwr.msc, devmgmt.msc, diskmgmt.msc, ncpa.cpl, powercfg.cpl.",
+        "Как связывать GUI-путь и PowerShell-команду для одной и той же проверки."
+      ],
+      "labs": [
+        "Сделать свою карту навигации: симптом -> нужная оснастка -> что там смотреть -> какая команда подтверждает вывод.",
+        "Пройтись по каждому пункту Win+X на тестовой машине и коротко записать, для чего он нужен.",
+        "Подготовить мини-справочник для пользователя: где смотреть сеть, диски, автозагрузку, ошибки и питание."
+      ],
+      "milestones": [
+        "Уметь быстро выбрать правильную оснастку под проблему, а не открывать всё подряд.",
+        "Понимать, когда удобнее GUI, а когда быстрее терминал.",
+        "Объяснять путь до нужной настройки человеку без технического бэкграунда."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Оптимизация, автозагрузка и обслуживание Windows",
+      "topics": [
+        "Процессы, память, диск, сетевую активность и вкладки Task Manager для первичной оптимизации.",
+        "Автозагрузка через Task Manager, Win32_StartupCommand, Run keys и scheduled tasks.",
+        "Питание и производительность: power plans, battery report, sleep, hibernation и wake sources.",
+        "Безопасная очистка temp, кэшей, корзины и диагностика нехватки места на системном томе."
+      ],
+      "labs": [
+        "Сравнить состояние системы до и после отключения лишней автозагрузки на тестовой VM.",
+        "Сделать чек-лист оптимизации: процессы, службы, автозапуск, свободное место, обновления, питание.",
+        "Разобрать один сценарий 'компьютер тормозит' и один сценарий 'ноутбук быстро разряжается'."
+      ],
+      "milestones": [
+        "Уметь отличать полезную оптимизацию от вредного шаманства.",
+        "Понимать, где проблема в ресурсах, а где в драйверах, обновлениях или сети.",
+        "Давать пользователю практичные рекомендации без опасных отключений системных функций."
+      ]
+    }
+  ]
+}

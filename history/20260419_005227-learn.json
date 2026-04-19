@@ -1,0 +1,423 @@
+{
+  "generatedAt": "2026-04-19 00:52:27",
+  "scenario": "learn",
+  "auditItems": [
+  ],
+  "cleanupSummary": null,
+  "commands": [
+    {
+      "platform": "Windows",
+      "title": "List local users",
+      "command": "Get-LocalUser",
+      "purpose": "Shows local Windows accounts, status, and last password change dates.",
+      "caution": "Read-only. Use it instead of trying to inspect password material."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect password policy",
+      "command": "net accounts",
+      "purpose": "Displays local password length, age, and lockout settings.",
+      "caution": "Run from an elevated shell if output is incomplete on a managed system."
+    },
+    {
+      "platform": "Windows",
+      "title": "Check local administrators",
+      "command": "Get-LocalGroupMember -Group Administrators",
+      "purpose": "Lists who currently has local administrator rights.",
+      "caution": "Use this to review access, not to modify group membership blindly."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect network configuration",
+      "command": "Get-NetIPConfiguration",
+      "purpose": "Shows adapters, IP addresses, gateways, and DNS settings.",
+      "caution": "Useful for baseline learning and troubleshooting."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect listening ports",
+      "command": "Get-NetTCPConnection -State Listen",
+      "purpose": "Lists processes that expose TCP listeners on the host.",
+      "caution": "Pay special attention to management ports such as 3389, 445, 5985, and 5986."
+    },
+    {
+      "platform": "Windows",
+      "title": "Test remote connectivity",
+      "command": "Test-NetConnection example.org -Port 443",
+      "purpose": "Checks DNS resolution and TCP connectivity to a remote endpoint.",
+      "caution": "Safe for troubleshooting. Do not use it as a port-scanning substitute on third-party networks."
+    },
+    {
+      "platform": "Windows",
+      "title": "Review running services",
+      "command": "Get-Service | Sort-Object Status, DisplayName",
+      "purpose": "Shows service states and helps spot disabled or unexpected services.",
+      "caution": "Focus on Windows Defender, firewall helpers, remote access, and backup agents."
+    },
+    {
+      "platform": "Windows",
+      "title": "Review scheduled tasks",
+      "command": "Get-ScheduledTask | Where-Object State -ne 'Disabled'",
+      "purpose": "Shows active scheduled tasks that may affect startup or persistence.",
+      "caution": "Review tasks before disabling them to avoid breaking updates or drivers."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect recent security events",
+      "command": "Get-WinEvent -LogName Security -MaxEvents 20",
+      "purpose": "Displays the latest security log events for learning and baseline review.",
+      "caution": "Security log access may require elevation or auditing to be enabled."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect Defender state",
+      "command": "Get-MpComputerStatus",
+      "purpose": "Shows Microsoft Defender health, signatures, and real-time protection state.",
+      "caution": "If Defender is not present, confirm whether another endpoint protection suite is installed."
+    },
+    {
+      "platform": "Windows",
+      "title": "Check system updates",
+      "command": "Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 10",
+      "purpose": "Lists recently installed Windows updates and hotfixes.",
+      "caution": "Useful for patch management verification."
+    },
+    {
+      "platform": "Windows",
+      "title": "Flush DNS cache",
+      "command": "ipconfig /flushdns",
+      "purpose": "Clears the local DNS resolver cache when troubleshooting resolution problems.",
+      "caution": "Use for diagnostics. It does not replace malware cleanup or browser cache cleanup."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect firewall profiles",
+      "command": "Get-NetFirewallProfile",
+      "purpose": "Shows whether Domain, Private, and Public firewall profiles are enabled and how they behave by default.",
+      "caution": "Pay attention to disabled profiles or inbound default action set to Allow."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect inbound firewall rules",
+      "command": "Get-NetFirewallRule -Enabled True -Direction Inbound -Action Allow",
+      "purpose": "Lists active inbound allow rules that expose services to the network.",
+      "caution": "Review the business need for each exposed management or sharing rule."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect key services",
+      "command": "Get-Service WinDefend, MpsSvc, wuauserv, WinRM, RemoteRegistry, sshd",
+      "purpose": "Quickly checks protective and remote-management related services.",
+      "caution": "Investigate unexpected remote-management services before disabling them."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect startup Run keys",
+      "command": "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run','HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'",
+      "purpose": "Shows classic startup persistence entries in machine and user Run keys.",
+      "caution": "Review unknown executables, especially from user-writable directories."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect event logs inventory",
+      "command": "Get-WinEvent -ListLog * | Sort-Object RecordCount -Descending | Select-Object -First 20",
+      "purpose": "Shows which logs are active and most populated on the system.",
+      "caution": "Use it to orient before deeper incident-response or troubleshooting work."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect ACLs on a file or folder",
+      "command": "Get-Acl C:\\Path\\To\\Item | Format-List",
+      "purpose": "Displays access control entries on a file system object.",
+      "caution": "Essential for diagnosing access-denied issues and over-permissioned data."
+    },
+    {
+      "platform": "Windows",
+      "title": "Inspect SMB shares",
+      "command": "Get-SmbShare",
+      "purpose": "Lists local SMB shares and helps review file-sharing exposure.",
+      "caution": "Shares should be justified and protected with correct NTFS and share permissions."
+    },
+    {
+      "platform": "Linux",
+      "title": "Show network interfaces",
+      "command": "ip addr show",
+      "purpose": "Displays Linux network interfaces and assigned IP addresses.",
+      "caution": "The modern replacement for ifconfig on most distributions."
+    },
+    {
+      "platform": "Linux",
+      "title": "Show routing table",
+      "command": "ip route show",
+      "purpose": "Displays the active routing table.",
+      "caution": "Useful when troubleshooting gateways, VPNs, and asymmetric routes."
+    },
+    {
+      "platform": "Linux",
+      "title": "Show listening ports",
+      "command": "ss -tulpn",
+      "purpose": "Lists TCP/UDP listeners together with owning processes.",
+      "caution": "Prefer it over legacy netstat on modern systems."
+    },
+    {
+      "platform": "Linux",
+      "title": "Show running services",
+      "command": "systemctl --type=service --state=running",
+      "purpose": "Lists active systemd services.",
+      "caution": "Look for unexpected remote-access, database, or web services."
+    },
+    {
+      "platform": "Linux",
+      "title": "Check firewall state",
+      "command": "sudo nft list ruleset",
+      "purpose": "Shows the active nftables ruleset on modern Linux systems.",
+      "caution": "On older hosts you may need iptables or ufw instead."
+    },
+    {
+      "platform": "Linux",
+      "title": "Check UFW rules",
+      "command": "sudo ufw status verbose",
+      "purpose": "Shows whether UFW is enabled and which rules are active.",
+      "caution": "Useful on Ubuntu-like systems that use UFW as the firewall frontend."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect authentication logs",
+      "command": "sudo journalctl -u ssh -n 50",
+      "purpose": "Shows recent SSH-related journal events.",
+      "caution": "Helpful for reviewing login activity and brute-force attempts."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect full journal",
+      "command": "sudo journalctl -xe",
+      "purpose": "Shows recent system log entries with extra context.",
+      "caution": "Do not run blindly on production during heavy incidents without narrowing the scope."
+    },
+    {
+      "platform": "Linux",
+      "title": "Review cron tasks",
+      "command": "crontab -l",
+      "purpose": "Displays scheduled jobs for the current user.",
+      "caution": "Also inspect /etc/crontab and /etc/cron.* for system-wide tasks."
+    },
+    {
+      "platform": "Linux",
+      "title": "Review login history",
+      "command": "last -a",
+      "purpose": "Shows recent login sessions and remote IP addresses.",
+      "caution": "Use together with lastb where failed-login tracking is enabled."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect file permissions",
+      "command": "ls -la /path && getfacl /path",
+      "purpose": "Shows UNIX permissions and ACLs for files or directories.",
+      "caution": "Critical for understanding over-permissioned data or scripts."
+    },
+    {
+      "platform": "Linux",
+      "title": "Find SUID binaries",
+      "command": "find / -perm -4000 -type f 2>/dev/null",
+      "purpose": "Lists files with the SUID bit set.",
+      "caution": "Useful in hardening and privilege-escalation review; can be slow on large hosts."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect processes",
+      "command": "ps aux --sort=-%mem | head",
+      "purpose": "Shows memory-heavy running processes.",
+      "caution": "Good for quick triage, but use top/htop for live monitoring."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect open files by process",
+      "command": "sudo lsof -p <pid>",
+      "purpose": "Lists files and sockets opened by a process.",
+      "caution": "Very useful in investigations, but lsof may need elevated privileges."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect package updates",
+      "command": "apt list --upgradable",
+      "purpose": "Lists packages with available updates on Debian/Ubuntu systems.",
+      "caution": "Use the equivalent package manager on other distributions."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect SELinux mode",
+      "command": "getenforce",
+      "purpose": "Shows whether SELinux is Enforcing, Permissive, or Disabled.",
+      "caution": "On Fedora/RHEL-like systems this is a basic security baseline check."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect fail2ban",
+      "command": "sudo fail2ban-client status",
+      "purpose": "Shows whether fail2ban is running and which jails are active.",
+      "caution": "Useful on internet-facing Linux hosts using SSH or exposed services."
+    },
+    {
+      "platform": "Linux",
+      "title": "Inspect users and shells",
+      "command": "getent passwd | cut -d: -f1,7",
+      "purpose": "Lists accounts and their configured login shells.",
+      "caution": "Look for unexpected interactive accounts or abnormal shells."
+    }
+  ],
+  "learningSections": [
+    {
+      "audience": "Системное администрирование",
+      "title": "База Windows и инфраструктуры",
+      "topics": [
+        "Устройство Windows: процессы, службы, драйверы, реестр, файловые системы, загрузка ОС.",
+        "Управление пользователями, группами, правами, UAC, NTFS ACL и локальными политиками.",
+        "Сетевые основы: TCP/IP, DNS, DHCP, NAT, VPN, маршрутизация, SMB, RDP, WinRM."
+      ],
+      "labs": [
+        "Поднять тестовую Windows VM и вручную настроить локальные учётные записи, UAC и NTFS-права.",
+        "Проверить сетевую конфигурацию, DNS, listening ports и firewall profiles через PowerShell."
+      ],
+      "milestones": [
+        "Уметь объяснить, как Windows загружается и где хранятся основные системные настройки.",
+        "Уметь диагностировать базовые проблемы входа, прав доступа и сетевого подключения."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "PowerShell и автоматизация",
+      "topics": [
+        "Конвейер PowerShell, объекты, модули, remoting, jobs, scheduled tasks.",
+        "Автоматизация инвентаризации: службы, процессы, обновления, firewall, event logs.",
+        "Написание безопасных скриптов, логирование и обработка ошибок."
+      ],
+      "labs": [
+        "Сделать набор скриптов для инвентаризации пользователей, сервисов и сетевых интерфейсов.",
+        "Настроить Scheduled Task для регулярного аудита системы и сохранения отчётов."
+      ],
+      "milestones": [
+        "Писать PowerShell-скрипты без копипаста команд вручную.",
+        "Автоматизировать повторяемые задачи администрирования."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Linux и базовая кроссплатформенная админка",
+      "topics": [
+        "Структура Linux: процессы, systemd, journald, package managers, users/groups, sudo, permissions.",
+        "Сетевые команды и диагностика: ip, ss, ping, traceroute, dig, curl, journalctl.",
+        "Автоматизация через Bash, cron, systemd timers и базовые shell-скрипты."
+      ],
+      "labs": [
+        "Поднять Linux VM и повторить те же проверки, что на Windows: пользователи, порты, сервисы, firewall.",
+        "Собрать шпаргалку команд Linux для сети, логов, сервисов и прав доступа."
+      ],
+      "milestones": [
+        "Понимать, где на Linux смотреть сервисы, журналы, маршруты и firewall.",
+        "Уметь сравнивать Windows и Linux-подходы к одной и той же админской задаче."
+      ]
+    },
+    {
+      "audience": "Системное администрирование",
+      "title": "Поддержка, обновления и восстановление",
+      "topics": [
+        "Windows Update, драйверы, журналы, точки восстановления, резервное копирование и recovery.",
+        "Мониторинг производительности, работа с памятью, диском, автозагрузкой и службами.",
+        "Понимание, как безопасно чистить временные данные без разрушения системы."
+      ],
+      "labs": [
+        "Собрать чек-лист обслуживания рабочей станции и сервера.",
+        "Отработать сценарий обновления, перезагрузки и отката на тестовой VM."
+      ],
+      "milestones": [
+        "Уметь вести регулярное обслуживание Windows-хоста.",
+        "Уметь быстро собирать базовый health-check после инцидента или жалобы пользователя."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Фундамент ИБ",
+      "topics": [
+        "CIA triad, риск-менеджмент, поверхность атаки, уязвимости, hardening и defence in depth.",
+        "Модели аутентификации и авторизации, MFA, least privilege, password policy, account lockout.",
+        "Сетевые угрозы, lateral movement, persistence, privilege escalation, phishing и malware basics."
+      ],
+      "labs": [
+        "Сопоставить настройки локальной безопасности Windows с типовыми рисками.",
+        "Разобрать несколько реальных техник MITRE ATT&CK и найти их Windows-артефакты."
+      ],
+      "milestones": [
+        "Уметь читать базовый security baseline и объяснять, зачем нужен каждый контроль.",
+        "Уметь отличать плохую конфигурацию от нормальной административной активности."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Windows Security Operations",
+      "topics": [
+        "Defender, firewall, audit policy, event logs, scheduled tasks, autoruns, services, PowerShell logging.",
+        "Индикаторы компрометации в учётках, службах, задачах, сетевых подключениях и журналах.",
+        "Базовый incident response: triage, containment, evidence preservation, eradication, lessons learned."
+      ],
+      "labs": [
+        "Собрать playbook проверки хоста: аккаунты, порты, сервисы, обновления, firewall, журналы.",
+        "Проверить, как выглядят нормальные и подозрительные scheduled tasks на тестовой машине."
+      ],
+      "milestones": [
+        "Уметь провести первичный defensive-аудит Windows-машины.",
+        "Уметь оформить findings и рекомендации понятным техническим языком."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Linux Security Basics",
+      "topics": [
+        "SSH, sudo, PAM, journalctl, nftables/ufw, file permissions, SUID/SGID, systemd services.",
+        "Поиск подозрительных cron jobs, нештатных служб, открытых портов и уязвимых прав доступа.",
+        "Базовая проверка hardening: обновления, SELinux/AppArmor, fail2ban, restricted users."
+      ],
+      "labs": [
+        "Проверить Linux-хост на открытые порты, cron, sudoers, SUID binaries и журнал SSH.",
+        "Сравнить нормальные и подозрительные systemd units в тестовой машине."
+      ],
+      "milestones": [
+        "Уметь делать базовый defensive-review Linux-сервера без хаотичного набора команд.",
+        "Понимать, какие Linux-артефакты чаще всего важны в расследовании и hardening."
+      ]
+    },
+    {
+      "audience": "Информационная безопасность",
+      "title": "Identity, AD и корпоративная среда",
+      "topics": [
+        "Active Directory, Kerberos, NTLM, GPO, delegated administration, service accounts, secrets hygiene.",
+        "Разделение административных ролей, tiering, jump hosts, LAPS, auditing privileged access.",
+        "Базовые корпоративные процессы: onboarding/offboarding, inventory, patching, vulnerability management."
+      ],
+      "labs": [
+        "Подготовить схему ролей доступа для маленькой организации.",
+        "Смоделировать безопасный жизненный цикл учётной записи сотрудника."
+      ],
+      "milestones": [
+        "Понимать, где чаще всего ломается контроль доступа в корпоративной Windows-среде.",
+        "Понимать, почему права локального администратора опасны на рабочих станциях."
+      ]
+    },
+    {
+      "audience": "Общее развитие",
+      "title": "Практические лаборатории и стек",
+      "topics": [
+        "VirtualBox/Hyper-V, Windows Sandbox, Sysinternals, Wireshark, Procmon, Autoruns, Event Viewer.",
+        "Git, CMake, C++ для внутренних defensive tools, Markdown-отчёты, JSON-экспорт, история запусков.",
+        "Документирование: runbooks, baselines, чек-листы и отчёты по findings."
+      ],
+      "labs": [
+        "Поднять домашний lab из нескольких VM и отрабатывать сценарии hardening и расследования.",
+        "Сделать серию мини-инструментов: инвентаризация, аудит прав, аудит firewall, анализ журналов."
+      ],
+      "milestones": [
+        "Не просто знать команды, а уметь строить собственные утилиты и процессы вокруг них.",
+        "Иметь портфолио учебных defensive-проектов, пригодное для диплома и собеседований."
+      ]
+    }
+  ]
+}

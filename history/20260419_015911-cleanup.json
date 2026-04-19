@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-04-19 01:59:11",
+  "scenario": "cleanup",
+  "auditItems": [
+  ],
+  "cleanupSummary": {
+    "dryRun": true,
+    "targets": [
+      {
+        "target": "Пользовательский temp (C:\\Users\\smirn\\AppData\\Local\\Temp\\)",
+        "success": true,
+        "skipped": false,
+        "filesAffected": 1503,
+        "bytesAffected": 1422074670,
+        "message": "Только dry-run. Файлы не удалялись."
+      },
+      {
+        "target": "Системный temp (C:\\WINDOWS\\Temp)",
+        "success": true,
+        "skipped": false,
+        "filesAffected": 0,
+        "bytesAffected": 0,
+        "message": "Только dry-run. Файлы не удалялись."
+      },
+      {
+        "target": "Корзина",
+        "success": true,
+        "skipped": false,
+        "filesAffected": 97,
+        "bytesAffected": 26698728937,
+        "message": "Только dry-run. Корзина не очищалась."
+      }
+    ]
+  },
+  "commands": [
+  ],
+  "artifactLocations": [
+  ],
+  "learningSections": [
+  ]
+}
